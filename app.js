@@ -34,6 +34,13 @@ app.use(cors({
     credentials: true
 }))
 
+//configuring session storage
+app.use(session({
+    secret:process.env.SESSION_SECRET,
+    resave:false,
+    saveUninitialized:false
+}))
+
 //configure the routes of student,instructor,admin roles
 app.use("/",student_route)
 app.use("/instructor",instructor_route)
