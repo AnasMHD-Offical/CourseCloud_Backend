@@ -31,20 +31,21 @@ app.use(cookieParser())
 //configure the cross origin resourse sharing with the client
 app.use(cors({
     origin : process.env.CORS_ORIGIN_CLIENT,
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type","Authorization"]
 }))
 
 //configuring session storage
 app.use(session({
     secret:process.env.SESSION_SECRET,
     resave:false,
-    saveUninitialized:false
+    saveUninitialized:false 
 }))
 
 //configure the routes of student,instructor,admin roles
-app.use("/",student_route)
-app.use("/instructor",instructor_route)
-app.use("/admin",admin_route)
+app.use("/api/",student_route)
+app.use("/api/instructor",instructor_route)
+app.use("/api/admin",admin_route)
 
 // listerning to the port in env file
 const PORT = process.env.PORT || 3000
