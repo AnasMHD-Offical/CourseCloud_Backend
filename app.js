@@ -32,7 +32,7 @@ app.use(cookieParser())
 app.use(cors({
     origin : process.env.CORS_ORIGIN_CLIENT,
     credentials: true,
-    allowedHeaders: ["Content-Type","Authorization"]
+    // allowedHeaders: ["Content-Type","Authorization"]
 }))
 
 //configuring session storage
