@@ -12,31 +12,32 @@ const student_schema = mongoose.Schema({
     },
     mobile: {
         type: String,
-        required: true
     },
     profile: {
         type: String
     },
     password: {
         type: String,
-        required: true
     },
     dob: {
         type: String,
-        required: true
     },
-    googleId:{
-        type:String,
-        sparse:true,
+    googleId: {
+        type: String,
+        sparse: true,
     },
-    is_blocked:{
-        type:Boolean,
-        default:false
+    is_blocked: {
+        type: Boolean,
+        default: false
+    },
+    is_admin: {
+        type: Boolean,
+        default: false
     },
     created_at: {
         type: Date,
         default: Date.now()
-    }
+    },
 
 })
 

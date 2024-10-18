@@ -1,11 +1,11 @@
 import { send_mail } from "./nodemailer_config.js";
 
 //module to sent otp verification mail derived from nodemailer config module.
-export const send_verification_mail = async (email, otp, name) => {
+export const send_verification_mail = async (email, otp, name, For) => {
     try {
         const main_response = await send_mail(
             email,
-            "CourseCloud - OTP verification email",
+            `CourseCloud - ${For} OTP verification email`,
             `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
                 <h2 style="color: #4caf50; text-align: center;">Welcome to CourseCloud LMS!</h2>
@@ -13,7 +13,7 @@ export const send_verification_mail = async (email, otp, name) => {
                 <p style="font-size: 16px;">Dear ${name},</p>
             
                 <p style="font-size: 16px; line-height: 1.6;">
-                    We're excited to have you join <strong>CourseCloud LMS</strong>, your partner in personalized learning. To get started, please verify your email address using the one-time password (OTP) below. This step will ensure your account is secure and ready to go.
+                    We're excited to have you join <strong>CourseCloud LMS</strong>, your partner in personalized learning. To get started, please verify your email address using the one-time password (OTP) below. This step will ensure your account is secure and ready to go .
                 </p>
             
                 <div style="text-align: center; margin: 30px 0;">

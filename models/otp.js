@@ -15,6 +15,10 @@ const otp_schema = mongoose.Schema({
         type: String,
         required: true
     },
+    For: {
+        type: String,
+        required: true
+    },
     created_at: {
         type: Date,
         default: Date.now(),
@@ -26,7 +30,7 @@ otp_schema.pre("save", async function (next) {
     console.log("New document saved to the database");
     //send verification email when a document is added to db
     if (this.isNew) {
-        await send_verification_mail(this.email, this.otp, this.name)
+        await send_verification_mail(this.email, this.otp, this.name , this.For)
     }
     next()
 })
