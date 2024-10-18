@@ -24,6 +24,9 @@ const instructor_schema = mongoose.Schema({
     proffession: {
         type: String
     },
+    dob: {
+        type: String
+    },
     joined_at: {
         type: Date,
         default: Date.now()
@@ -39,5 +42,5 @@ const instructor_schema = mongoose.Schema({
         type: String
     }
 })
-const instructor_model = mongoose.model("instructor",instructor_schema)
+const instructor_model = mongoose.model("instructor", instructor_schema)
 export default instructor_model
