@@ -12,7 +12,7 @@ export const generate_access_token = (role, data) => {
             expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES
         })
     } else if (role === "admin") {
-        return jwt.sign({ data }, JWT_ADMIN_ACCESS_TOKEN_SECRET, {
+        return jwt.sign({ data }, process.env.JWT_ADMIN_ACCESS_TOKEN_SECRET, {
             expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES
         })
     }
@@ -28,7 +28,7 @@ export const generate_refresh_token = (role, data) => {
             expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES
         })
     } else if (role === "admin") {
-        return jwt.sign({ data }, JWT_ADMIN_REFRESH_TOKEN_SECRET, {
+        return jwt.sign({ data }, process.env.JWT_ADMIN_REFRESH_TOKEN_SECRET, {
             expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES
         })
     }
