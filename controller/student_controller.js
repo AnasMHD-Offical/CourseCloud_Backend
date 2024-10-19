@@ -224,8 +224,9 @@ const reset_password = async (req, res) => {
 //controller to handle the create new access token with refresh token when the access token exprires.  
 const refresh_token = async (req, res) => {
     try {
+        // const role_refresh_token = `${req.role}_refresh_token`
         //getting the refresh_token from the cookie
-        const refresh_token = req?.cookies?.student_refresh_token
+        const refresh_token = req?.cookies?.student_refresh_token || req?.cookies?.admin_refresh_token || req?.cookies?.instructor_refresh_token
         console.log(refresh_token);
         //if cookie not found send a rejected response with status 401
         if (!refresh_token) {

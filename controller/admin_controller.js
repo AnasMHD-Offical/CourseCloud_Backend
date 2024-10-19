@@ -8,6 +8,10 @@ import { store_token } from "../utils/JWT/StoreCookie.js"
 import jwt from "jsonwebtoken"
 import refresh_token_model from "../models/refresh_token.js"
 import validator from "validator"
+import category_model from "../models/category.js"
+
+
+// <-------------- Admin Auth -------------------->
 
 //Controller to handle student login 
 const admin_login = async (req, res) => {
@@ -190,12 +194,170 @@ const reset_password = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error })
     }
 }
-//controller to handle the create new access token with refresh token when the access token exprires.  
+
+// <--------------- Admin Category management --------------->
+
+//Controller for handle add category
+const add_category = async (req, res) => {
+    try {
+
+        const { title, description } = req.body
+        //Finding the category alreary exist or not
+        const categories = await category_model.find({ title })
+        //Checking the category is not exist (presized finding)
+        const is_category_exist = categories.filter((category) => (category.title.toLowerCase().trim() === title.toLowerCase().trim()))
+        //if category is not exist then go to further proceduers
+        if (is_category_exist.length === 0) {
+            //creating a new category
+            const new_category = new category_model({
+                title: title,
+                description: description
+            })
+            //save the category into db 
+            const category_saved = await new_category.save()
+            if (category_saved) {
+                //if the category saved successfully then send a resolved response with statuscode 200
+                res.status(200)
+                    .json({ message: "Category added successfully", success: true, category: category_saved })
+            } else {
+                // if any error occurs in database to saving the document throw an error to identify
+                res.status(400)
+                    .json({ message: "Unexpected error occuurs. Modal schema not matching.", success: false })
+            }
+        // if the user exist then throw a rejected resposne with status 409
+        } else {
+            res.status(409)
+                .json({ message: "Category is already exist. Try another one", success: false })
+        }
+    //if the any other error occurs then throw a rejected resposne with status code 500
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error })
+    }
+}
+//Controller for handle get all category
+const get_all_categories = async (req, res) => {
+    try {
+        //Getting all category that doesn't unlisted from the admin
+        const get_category = await category_model.find({ status: true })
+        // send and resolved response with statuscode 200 with the getted data
+        if (get_category) {
+            res.status(200)
+                .json({ message: "Category fetched successfully", success: true, all_categories: get_category })
+        }
+    } catch (error) {
+        //any other error occurs then send a rejected response with status 500
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error })
+    }
+}
+//Controller for handle add sub category
+const add_sub_category = async (req, res) => {
+    try {
+        const { title, description } = req.body.data
+        const _id = req.body.id
+        console.log(_id);
+        //get the category having the category_id
+        const get_category = await category_model.findOne({ _id })
+        // console.log(get_category);
+        //getting the array of sub_category object 
+        const sub_categories = get_category?.sub_category
+
+        //Presizely cheking the sub category exist or not  
+        const is_sub_category_exist = sub_categories.filter((sub) => (sub.title.toLowerCase().trim() === title.toLowerCase().trim()))
+        console.log(is_sub_category_exist.length);
+
+        //checking the category exist or not
+        if (get_category) {
+            // console.log(get_category);
+            // tif the sub category not exist then go for furthur process
+            if (is_sub_category_exist.length === 0) {
+                // add the new sub category to the array by spread operator otherwise it will override the existing one
+                get_category.sub_category = [...sub_categories, { title, description }]
+                // The editing the sub category to the db
+                const saved = await get_category.save()
+                // if the saving was done then sent a resolved resposne with statuscode 200
+                if (saved) {
+                    res.status(200)
+                        .json({ message: "Sub category added", success: true })
+                } else {
+                    //if there is any issue will occur while saving it into the db throw an error to identify it 
+                    res.status(400)
+                        .json({ message: "Unexpexted error founded", success: false })
+                }
+            } else {
+                //if the sub category already exist then throw an rejected response with 409 statuscode
+                res.status(409)
+                    .json({ message: "Sub category already exist . Try another one", success: false })
+            }
+        } else {
+            //if the category is didn't get from the datatbase then throw a rejected resposne with 404 not found
+            res.status(404)
+                .json({ message: "Invalid category . Try with a valid category", success: false })
+        }
+
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went Wrong", success: false, error: error })
+    }
+}
+
+//Controller for handle edit category
+const edit_category = async (req, res) => {
+    try {
+        const { title, description } = req.body.data
+        const _id = req.body.id
+        console.log(_id);
+
+        let is_changed = false
+         //get the category having the category_id
+        const get_category = await category_model.findOne({ _id })
+        //checking if the category founded or not
+        if (get_category) {
+            //checking if the sub category already exist or not 
+            if (get_category.title.toLowerCase().trim() !== title.toLowerCase().trim()) is_changed = true
+            if (get_category.description.toLowerCase().trim() !== description.toLowerCase().trim()) is_changed = true
+            //ovirride the category with the new title and descriptions
+            get_category.title = title
+            get_category.description = description
+            console.log(get_category);
+            //save the updates to the db
+            const edited = await get_category.save()
+            console.log(edited);
+            //if no edits are done in the with the data sent a resolved response with mentioning it with statuscode 200
+            if (edited && !is_changed) {
+                res.status(200)
+                    .json({ message: "Category edited successfully. No changes made", success: true })
+            } else if (edited && is_changed) {
+                //if it edited with changes then sent a normal resolved response with status code 200
+                res.status(200)
+                    .json({ message: "Category edited successfully.", success: true })
+                } else {
+                //Any unexpected error happens during the db update throws an rejected resposne with 400 status code 
+                res.status(400)
+                    .json({ message: "Unexpected error found. Try again", success: false })
+            }
+        } else {
+            // if the category was not found then throw a not fount recjected resposne 
+            res.status(404)
+                .json({ message: "Category not found .Try another one", success: false })
+        }
+
+
+    } catch (error) {
+        res.status(200)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
 
 //exporting student controllers
 export {
     admin_login,
     send_otp,
     validate_otp,
-    reset_password
+    reset_password,
+    add_category,
+    get_all_categories,
+    add_sub_category,
+    edit_category
 }
