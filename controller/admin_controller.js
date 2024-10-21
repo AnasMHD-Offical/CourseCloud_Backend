@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken"
 import refresh_token_model from "../models/refresh_token.js"
 import validator from "validator"
 import category_model from "../models/category.js"
+import instructor_model from "../models/instuctor.js"
 
 
 // <-------------- Admin Auth -------------------->
@@ -564,12 +565,191 @@ const listing_sub_category = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error })
     }
 }
+
+// <---------------------- Admin Student Management ------------------------>
+
+//Controller to handle get all students to the admin student manangement
+const get_all_students = async (req, res) => {
+    try {
+        //Getting students from the data base
+        const get_students = await student_model.find({ is_admin: false })
+        //if user exist then go to furtur proceedings 
+        if (get_students.length !== 0) {
+            //sending a resolved response with status code 200 with students data  
+            res.status(200)
+                .json({ message: "Studented data fetched successfully", success: true, user_data: get_students })
+        } else {
+            //if no user found sending a rejected response with status code 404
+            res.status(404)
+                .json({ message: "Not student data found . Add students", success: false })
+        }
+    } catch (error) {
+        // if any other error occurs then send a 500 status code rejected response to the client.
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+//Controller to handle block students 
+const block_student = async (req, res) => {
+    try {
+        const { _id } = req.body
+        //getting the student from _id
+        const get_student = await student_model.findOne({ _id })
+        //Checking the student is exist or not 
+        if (get_student) {
+            //updating the students block status to true for block the user
+            get_student.is_blocked = true
+            //saving the changes to database
+            const blocked = await get_student.save()
+            //Sending the resolved response with 200 status
+            if (blocked) {
+                res.status(200)
+                    .json({ message: "Student Blocked successfully", success: true })
+            } else {
+                // throw an error when any error occurs due to the data saving.
+                res.status(400)
+                    .json({ message: "Unexpected error occurs . Try again", success: false })
+            }
+        } else {
+            //throw an error when the student not exist 
+            res.status(404)
+                .json({ message: "No student found", success: false })
+        }
+    } catch (error) {
+        //throw an error when any un expected error happens
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+//Controller to handle unblock students 
+const unblock_student = async (req, res) => {
+    try {
+        const { _id } = req.body
+         //getting the student from _id
+        const get_student = await student_model.findOne({ _id })
+        //Checking the student is exist or not 
+        if (get_student) {
+            //updating the students block status to false for unblock the user
+            get_student.is_blocked = false
+            //saving the changes to database
+            const blocked = await get_student.save()
+            if (blocked) {
+                //Sending the resolved response with 200 status
+                res.status(200)
+                    .json({ message: "Student Unblocked successfully", success: true })
+            } else {
+                // throw an error when any error occurs due to the data saving.
+                res.status(400)
+                    .json({ message: "Unexpected error occurs . Try again", success: false })
+            }
+        } else {
+            res.status(404)
+             //throw an error when the student not exist 
+                .json({ message: "No student found", success: false })
+        }
+    } catch (error) {
+        //throw an error when any un expected error happens
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+
+// <---------------------- Admin Instructor Management ------------------------>
+
+//Controller to handle get all instructor to the admin student manangement
+const get_all_instructors = async (req, res) => {
+    try {
+        //Getting students from the data base
+        const get_instructors = await instructor_model.find()
+        //if user exist then go to furtur proceedings 
+        if (get_instructors.length !== 0) {
+            //sending a resolved response with status code 200 with instructors data  
+            res.status(200)
+                .json({ message: "Studented data fetched successfully", success: true, user_data: get_instructors })
+        } else {
+            //if no user found sending a rejected response with status code 404
+            res.status(404)
+                .json({ message: "Not student data found . Add instructors", success: false })
+        }
+    } catch (error) {
+        // if any other error occurs then send a 500 status code rejected response to the client.
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+//Controller to handle unblock students 
+const block_instructor = async (req, res) => {
+    try {
+        const { _id } = req.body
+         //getting the instructor from _id
+        const get_instructor = await instructor_model.findOne({ _id })
+        //Checking the Instructor is exist or not 
+        if (get_instructor) {
+            //updating the instructor block status to true for block the user
+            get_instructor.is_blocked = true
+            //saving the changes to database
+            const blocked = await get_instructor.save()
+            if (blocked) {
+                //Sending the resolved response with 200 status
+                res.status(200)
+                    .json({ message: "Instructor blocked successfully", success: true })
+            } else {
+                // throw an error when any error occurs due to the data saving.
+                res.status(400)
+                    .json({ message: "Unexpected error occurs . Try again", success: false })
+            }
+        } else {
+             //throw an error when the instructor not exist 
+            res.status(404)
+                .json({ message: "No instructor found", success: false })
+        }
+    } catch (error) {
+        //throw an error when any un expected error happens
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+//Controller to handle unblock students 
+const unblock_instructor = async (req, res) => {
+    try {
+        const { _id } = req.body
+        //getting the instructor from _id
+        const get_instructor = await instructor_model.findOne({ _id })
+        //Checking the Instructor is exist or not 
+        if (get_instructor) {
+            //updating the instructor block status to false for unblock the user
+            get_instructor.is_blocked = false
+            //saving the changes to database
+            const blocked = await get_instructor.save()
+            if (blocked) {
+                //Sending the resolved response with 200 status
+                res.status(200)
+                    .json({ message: "Instructor Unblocked successfully", success: true })
+            } else {
+                // throw an error when any error occurs due to the data saving.
+                res.status(400)
+                    .json({ message: "Unexpected error occurs . Try again", success: false })
+            }
+        } else {
+            res.status(404)
+             //throw an error when the instructor not exist 
+                .json({ message: "No instructor found", success: false })
+        }
+    } catch (error) {
+        //throw an error when any un expected error happens
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+
 //exporting student controllers
 export {
+    //auth manangement
     admin_login,
     send_otp,
     validate_otp,
     reset_password,
+    //category management
     get_all_categories,
     add_category,
     edit_category,
@@ -578,5 +758,14 @@ export {
     add_sub_category,
     edit_sub_category,
     delete_sub_category,
-    listing_sub_category
+    listing_sub_category,
+    //student management
+    get_all_students,
+    block_student,
+    unblock_student,
+    //instructor management
+    get_all_instructors,
+    block_instructor,
+    unblock_instructor
+
 }

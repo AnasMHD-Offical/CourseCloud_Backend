@@ -59,7 +59,7 @@ const instructor_login = async (req, res) => {
                                     name: response?.name
                                 },
                                 access_token,
-                                role:"instructor"
+                                role: "instructor"
                             })
                     }
                 } else {
@@ -68,7 +68,7 @@ const instructor_login = async (req, res) => {
                 }
             } else {
                 res.status(403)
-                    .json({ message: "Invalid email or password" , success: false})
+                    .json({ message: "Invalid email or password", success: false })
             }
         } else {
             res.status(403)
@@ -135,26 +135,31 @@ const send_otp = async (req, res) => {
         //if the user doesn't exist then genearate otp and save it to the db
         if (!is_instructor_exist && For === "registration" || is_instructor_exist && For === "forgot_password") {
             //calling function to generate otp
-            let otp = await generate_otp()
-            //checking is the otp is already on the database then the otp changes whenever the unique value found
-            let is_otp_exist = await otp_model.findOne({ otp })
-            while (is_otp_exist) {
-                otp = await generate_otp()
-                is_otp_exist = await otp_model.findOne({ otp })
-            }
-            //create a document of otp with user credentials and otp in db
-            const new_otp = await otp_model.create({
-                otp: otp,
-                email: email,
-                name: name || instructor_name,
-                For: For,
-            })
-            console.log(new_otp);
+            if (!is_instructor_exist && !is_instructor_exist.is_blocked) {
+                let otp = await generate_otp()
+                //checking is the otp is already on the database then the otp changes whenever the unique value found
+                let is_otp_exist = await otp_model.findOne({ otp })
+                while (is_otp_exist) {
+                    otp = await generate_otp()
+                    is_otp_exist = await otp_model.findOne({ otp })
+                }
+                //create a document of otp with user credentials and otp in db
+                const new_otp = await otp_model.create({
+                    otp: otp,
+                    email: email,
+                    name: name || instructor_name,
+                    For: For,
+                })
+                console.log(new_otp);
 
-            //After the document creation in db . sending a resolved response to the client side
-            if (new_otp) {
-                return res.status(200)
-                    .json({ message: "OTP sent successfully to the given email", success: true })
+                //After the document creation in db . sending a resolved response to the client side
+                if (new_otp) {
+                    return res.status(200)
+                        .json({ message: "OTP sent successfully to the given email", success: true })
+                }
+            } else {
+                res.status(403)
+                    .json({ message: "Access denied. Instructor was blocked.", success: false })
             }
             //if the user is already exist in the db . sending a reject response to the client side.
         } else {
@@ -172,11 +177,11 @@ const validate_otp = async (req, res) => {
     try {
         //Destructuring the email and otp from the client side request
         const { email, otp, For } = req.body
-        
+
         //checking the the otp that sended before and getting the latest sended otp
-        const is_otp_found = await otp_model.find({ email , For }).sort({ created_at: -1 }).limit(1)
+        const is_otp_found = await otp_model.find({ email, For }).sort({ created_at: -1 }).limit(1)
         console.log(is_otp_found);
-        
+
         //checking is there is any otp is in the collection
         if (is_otp_found.length != 0) {
             //checking is the sended otp and clent entered otp is same 
