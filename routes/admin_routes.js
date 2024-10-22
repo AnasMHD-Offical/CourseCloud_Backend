@@ -1,6 +1,6 @@
 //Importing Es modules
 import express from "express"
-import { add_category, add_sub_category, admin_login, block_instructor, block_student, delete_category, delete_sub_category, edit_category, edit_sub_category, get_all_categories, get_all_instructors, get_all_students, listing_category, listing_sub_category, reset_password, send_otp, unblock_instructor, unblock_student, validate_otp } from "../controller/admin_controller.js"
+import { add_category, add_sub_category, admin_login, admin_logout, block_instructor, block_student, delete_category, delete_sub_category, edit_category, edit_sub_category, get_all_categories, get_all_instructors, get_all_students, listing_category, listing_sub_category, reset_password, send_otp, unblock_instructor, unblock_student, validate_otp } from "../controller/admin_controller.js"
 const admin_route = express.Router()
 
 
@@ -16,6 +16,9 @@ admin_route.post("/validate_otp", validate_otp)
 
 //Route for admin reset password
 admin_route.put("/reset_password", reset_password)
+
+//Route for admin logout 
+admin_route.post("/admin_logout" , admin_logout)
 
 // <<-------------- Admin Category Management Route ------------------>>
 

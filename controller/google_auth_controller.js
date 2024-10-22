@@ -49,7 +49,7 @@ export const googleAuth = async (req, res) => {
                     .json({
                         message: "google student register and login successfully",
                         success: true,
-                        student_details: {
+                        student_data: {
                             _id: new_student._id,
                             email: new_student.email,
                             name: new_student.name
@@ -79,7 +79,7 @@ export const googleAuth = async (req, res) => {
                         .json({
                             message: "Google login succesfully",
                             success: true,
-                            student_details: {
+                            student_data: {
                                 _id: student._id,
                                 email: student.email,
                                 name: student.name
@@ -125,7 +125,7 @@ export const googleAuth = async (req, res) => {
                     .json({
                         message: "google instructor register and login successfully",
                         success: true,
-                        instructor_details: {
+                        instructor_data: {
                             _id: new_instructor._id,
                             email: new_instructor.email,
                             name: new_instructor.name
@@ -155,7 +155,7 @@ export const googleAuth = async (req, res) => {
                         .json({
                             message: "Google login succesfully",
                             success: true,
-                            instructor_details: {
+                            instructor_data: {
                                 _id: instructor._id,
                                 email: instructor.email,
                                 name: instructor.name

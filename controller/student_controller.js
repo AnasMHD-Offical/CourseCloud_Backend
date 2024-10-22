@@ -134,7 +134,10 @@ const send_otp = async (req, res) => {
 
         //if the user doesn't exist then genearate otp and save it to the db
         if (!is_student_exist && For === "registration" || is_student_exist && For === "forgot_password") {
-            if (!is_student_exist && !is_student_exist.is_blocked) {
+           console.log("hello world here");
+           
+           if (!is_student_exist || !is_student_exist.is_blocked) {
+                console.log("hello world here");
                 //calling function to generate otp
                 let otp = await generate_otp()
                 //checking is the otp is already on the database then the otp changes whenever the unique value found

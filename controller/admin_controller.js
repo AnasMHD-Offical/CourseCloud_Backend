@@ -12,7 +12,7 @@ import category_model from "../models/category.js"
 import instructor_model from "../models/instuctor.js"
 
 
-// <-------------- Admin Auth -------------------->
+//* <-------------- Admin Auth -------------------->
 
 //Controller to handle student login 
 const admin_login = async (req, res) => {
@@ -195,8 +195,42 @@ const reset_password = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error })
     }
 }
+//Controller to handle admin logout
+const admin_logout = async (req, res) => {
+    try {
+        //getting refresh token from cookie
+        const admin_refresh_token = req.cookies.admin_refresh_token || res.cookies.student_refresh_token || res.cookies.instructor_refresh_token
+        console.log(admin_refresh_token);
+        // Removing the refresh token from db
+        const removedRefresh_token = await refresh_token_model.deleteOne({ token: admin_refresh_token })
+        if (removedRefresh_token) {
+            // Removing the refresh token from cookie
+            res.cookie("admin_refresh_token", "", {
+                httpOnly: true,
+                expires: new Date(0),
+            });
+            // Removing the access token from cookie
+            res.cookie("admin_access_token", "", {
+                httpOnly: true,
+                expires: new Date(0),
+            });
+            //if all workes well the proceed with resolved response with status 200
+            res.status(200)
+                .json({ message: "Admin Logout Successfully", success: true })
+        } else {
+            //if any error happended with the delete in db throw an error
+            res.status(400)
+                .json({ message: "Unexpected error occurs. Try again", success: false })
+        }
+    } catch (error) {
+            // if any other will found thnrow an rejected response with 500 status code and the error.
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
 
-// <--------------- Admin Category management --------------->
+}
+
+//* <--------------- Admin Category management --------------->
 
 //Controller for handle add category
 const add_category = async (req, res) => {
@@ -566,7 +600,7 @@ const listing_sub_category = async (req, res) => {
     }
 }
 
-// <---------------------- Admin Student Management ------------------------>
+//* <---------------------- Admin Student Management ------------------------>
 
 //Controller to handle get all students to the admin student manangement
 const get_all_students = async (req, res) => {
@@ -625,7 +659,7 @@ const block_student = async (req, res) => {
 const unblock_student = async (req, res) => {
     try {
         const { _id } = req.body
-         //getting the student from _id
+        //getting the student from _id
         const get_student = await student_model.findOne({ _id })
         //Checking the student is exist or not 
         if (get_student) {
@@ -644,7 +678,7 @@ const unblock_student = async (req, res) => {
             }
         } else {
             res.status(404)
-             //throw an error when the student not exist 
+                //throw an error when the student not exist 
                 .json({ message: "No student found", success: false })
         }
     } catch (error) {
@@ -654,7 +688,7 @@ const unblock_student = async (req, res) => {
     }
 }
 
-// <---------------------- Admin Instructor Management ------------------------>
+//* <---------------------- Admin Instructor Management ------------------------>
 
 //Controller to handle get all instructor to the admin student manangement
 const get_all_instructors = async (req, res) => {
@@ -681,7 +715,7 @@ const get_all_instructors = async (req, res) => {
 const block_instructor = async (req, res) => {
     try {
         const { _id } = req.body
-         //getting the instructor from _id
+        //getting the instructor from _id
         const get_instructor = await instructor_model.findOne({ _id })
         //Checking the Instructor is exist or not 
         if (get_instructor) {
@@ -699,7 +733,7 @@ const block_instructor = async (req, res) => {
                     .json({ message: "Unexpected error occurs . Try again", success: false })
             }
         } else {
-             //throw an error when the instructor not exist 
+            //throw an error when the instructor not exist 
             res.status(404)
                 .json({ message: "No instructor found", success: false })
         }
@@ -732,7 +766,7 @@ const unblock_instructor = async (req, res) => {
             }
         } else {
             res.status(404)
-             //throw an error when the instructor not exist 
+                //throw an error when the instructor not exist 
                 .json({ message: "No instructor found", success: false })
         }
     } catch (error) {
@@ -744,12 +778,13 @@ const unblock_instructor = async (req, res) => {
 
 //exporting student controllers
 export {
-    //auth manangement
+    //* auth manangement
     admin_login,
     send_otp,
     validate_otp,
     reset_password,
-    //category management
+    admin_logout,
+    //* category management
     get_all_categories,
     add_category,
     edit_category,
@@ -759,11 +794,11 @@ export {
     edit_sub_category,
     delete_sub_category,
     listing_sub_category,
-    //student management
+    //* student management
     get_all_students,
     block_student,
     unblock_student,
-    //instructor management
+    //* instructor management
     get_all_instructors,
     block_instructor,
     unblock_instructor
