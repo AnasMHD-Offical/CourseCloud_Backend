@@ -238,8 +238,8 @@ const refresh_token = async (req, res) => {
         console.log(refresh_token);
         //if cookie not found send a rejected response with status 401
         if (!refresh_token) {
-            return res.status(401)
-                .json({ message: "Refresh token not found", success: false })
+            return res.status(403)
+                .json({ message: "Refresh token expired . Login to your account", success: false })
         }
         const is_refresh_token_found = await refresh_token_model.findOne({ token: refresh_token })
         //based on the role provided in the refresh_token_model the access_secret and refresh_secret will change accordingly

@@ -223,12 +223,100 @@ const admin_logout = async (req, res) => {
                 .json({ message: "Unexpected error occurs. Try again", success: false })
         }
     } catch (error) {
-            // if any other will found thnrow an rejected response with 500 status code and the error.
+        // if any other will found thnrow an rejected response with 500 status code and the error.
         res.status(500)
             .json({ message: "Something went wrong", success: false, error })
     }
 
 }
+
+//* <--------------- Admin Profile Management ---------------->
+
+//Controller to handle getting an admin data using this admin _id
+const get_admin_data = async (req, res) => {
+    try {
+        const _id = req.params.id
+        const get_admin_data = await student_model.findOne({ _id, is_admin: true })
+        if (get_admin_data) {
+            res.status(200)
+                .json({ message: "Fetched admin data successfully", success: true, user_data: get_admin_data })
+        } else {
+            res.status(404)
+                .json({ message: "Admin not found", success: false })
+        }
+
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+
+//Controller to handle edit the admin data 
+const edit_admin = async (req, res) => {
+    const { name, email, mobile, dob, current_password, new_password, profile, _id } = req.body
+    console.log(req.body);
+    
+    try {
+        let isChanged = false
+        const get_admin = await student_model.findOne({ _id, is_admin: true })
+        if (get_admin) {
+            if (name !== get_admin.name && name !== "") {
+                get_admin.name = name
+                isChanged = true
+            }
+            if (email !== get_admin.email && email !== "") {
+                get_admin.email = email
+                isChanged = true
+            }
+            if (mobile !== get_admin.mobile && mobile !== "") {
+                get_admin.mobile = mobile
+                isChanged = true
+            }
+            if (dob !== get_admin?.dob && dob !== "") {
+                get_admin.dob = dob
+                isChanged = true
+            }
+            if (current_password !== "" && new_password!== "") {
+                const is_password_same = await compare_password(current_password, get_admin?.password)
+                if (is_password_same || !get_admin?.googleId) {
+                    if (new_password !== current_password || new_password !== "") {
+                        get_admin.password = new_password
+                        isChanged = true
+                    }
+                } else if (get_admin?.googleId) {
+                    if (new_password !== "") {
+                        get_admin.password = new_password
+                        isChanged = true
+                    }
+                } else {
+                    res.status(400)
+                        .json({ message: "Current password is worng . Try to enter a valid password", success: false })
+                }
+            }
+            if (profile !== get_admin?.profile && profile !== "") {
+                get_admin.profile = profile
+                isChanged = true
+            }
+
+            const isUpdated = await get_admin.save()
+            if (isUpdated && !isChanged) {
+                res.status(200)
+                    .json({ message: "Admin data updated successfully. No changes made", success: true })
+            } else {
+                res.status(200)
+                    .json({ message: "Admin data updated successfully.", success: true })
+            }
+
+        } else {
+            res.status(404)
+                .json({ message: "Admin not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went Wrong", success: false, error })
+    }
+}
+
 
 //* <--------------- Admin Category management --------------->
 
@@ -238,11 +326,11 @@ const add_category = async (req, res) => {
 
         const { title, description } = req.body
         //Finding the category alreary exist or not
-        const categories = await category_model.find({ title })
+        const is_category_exist = await category_model.findOne({ title : {$regex: new RegExp(`^${title}$`,'i')} })
         //Checking the category is not exist (presized finding)
-        const is_category_exist = categories.filter((category) => (category.title.toLowerCase().trim() === title.toLowerCase().trim()))
+        // const is_category_exist = categories.filter((category) => (category.title.toLowerCase().trim() === title.toLowerCase().trim()))
         //if category is not exist then go to further proceduers
-        if (is_category_exist.length === 0) {
+        if (!is_category_exist) {
             //creating a new category
             const new_category = new category_model({
                 title: title,
@@ -784,6 +872,9 @@ export {
     validate_otp,
     reset_password,
     admin_logout,
+    //* Profile Manangement
+    get_admin_data,
+    edit_admin,
     //* category management
     get_all_categories,
     add_category,
