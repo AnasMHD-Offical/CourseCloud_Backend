@@ -9,7 +9,9 @@ import refresh_token_model from "../models/refresh_token.js"
 import jwt from "jsonwebtoken"
 import validator from "validator"
 
-//Controller to handle student login 
+
+//* <------------------------------- Instructor Auth ---------------------------------->
+//Controller to handle Instructor login 
 const instructor_login = async (req, res) => {
     try {
         const { email, password } = req.body
@@ -81,7 +83,7 @@ const instructor_login = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error: error })
     }
 }
-//controller to handle student Register.
+//controller to handle Instructor Register.
 const instructor_register = async (req, res) => {
     try {
         //Destructuring student details from client request
@@ -135,7 +137,10 @@ const send_otp = async (req, res) => {
         //if the user doesn't exist then genearate otp and save it to the db
         if (!is_instructor_exist && For === "registration" || is_instructor_exist && For === "forgot_password") {
             //calling function to generate otp
-            if (!is_instructor_exist && !is_instructor_exist.is_blocked) {
+            console.log("hey");
+            
+            if (!is_instructor_exist || !is_instructor_exist.is_blocked) {
+                console.log("hey");
                 let otp = await generate_otp()
                 //checking is the otp is already on the database then the otp changes whenever the unique value found
                 let is_otp_exist = await otp_model.findOne({ otp })
@@ -172,7 +177,7 @@ const send_otp = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error: error })
     }
 }
-// //Controller to handle otp validation 
+//Controller to handle otp validation 
 const validate_otp = async (req, res) => {
     try {
         //Destructuring the email and otp from the client side request
@@ -206,7 +211,7 @@ const validate_otp = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error: error })
     }
 }
-// //Controller to handle reset password 
+//Controller to handle reset password 
 const reset_password = async (req, res) => {
     try {
         const { email, password } = req.body
@@ -227,12 +232,103 @@ const reset_password = async (req, res) => {
     }
 }
 
+//* <-------------------------- Instructor Profile management --------------------------> 
+
+//Controller to handle get instructor data
+const get_instructor = async (req, res) => {
+    try {
+        const _id = req.params.id
+        console.log(_id);
+
+        const get_instructor = await instructor_model.findOne({ _id })
+        console.log(get_instructor);
+        if (get_instructor) {
+            res.status(200)
+                .json({ message: "Instructor data fetched successfully.", success: true, user_data: get_instructor })
+        } else {
+            res.status(404)
+                .json({ message: "Instructor is not exist . try another one", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+//Controller to handle edit instructor data
+const edit_instructor = async (req, res) => {
+    const { name, email, mobile, dob, current_password, new_password, profile, _id } = req.body
+    console.log(req.body);
+    
+    try {
+        let isChanged = false
+        const get_instructor = await instructor_model.findOne({ _id })
+        if (get_instructor) {
+            if (name !== get_instructor.name && name !== "") {
+                get_instructor.name = name
+                isChanged = true
+            }
+            if (email !== get_instructor.email && email !== "") {
+                get_instructor.email = email
+                isChanged = true
+            }
+            if (mobile !== get_instructor.mobile && mobile !== "") {
+                get_instructor.mobile = mobile
+                isChanged = true
+            }
+            if (dob !== get_instructor?.dob && dob !== "") {
+                get_instructor.dob = dob
+                isChanged = true
+            }
+            if (current_password !== "" && new_password!== "") {
+                const is_password_same = await compare_password(current_password, get_instructor?.password)
+                if (is_password_same || !get_instructor?.googleId) {
+                    if (new_password !== current_password || new_password !== "") {
+                        get_instructor.password = new_password
+                        isChanged = true
+                    }
+                } else if (get_instructor?.googleId) {
+                    if (new_password !== "") {
+                        get_instructor.password = new_password
+                        isChanged = true
+                    }
+                } else {
+                    res.status(400)
+                        .json({ message: "Current password is wrong . Try to enter a valid password", success: false })
+                }
+            }
+            if (profile !== get_instructor?.profile && profile !== "") {
+                get_instructor.profile = profile
+                isChanged = true
+            }
+
+            const isUpdated = await get_instructor.save()
+            if (isUpdated && !isChanged) {
+                res.status(200)
+                    .json({ message: "Instructor updated successfully. No changes made", success: true })
+            } else {
+                res.status(200)
+                    .json({ message: "Instructor updated successfully.", success: true })
+            }
+
+        } else {
+            res.status(404)
+                .json({ message: "Instructor not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went Wrong", success: false, error })
+    }
+}
 
 //exporting instructor controllers
 export {
+    //Instructor Auth
     instructor_login,
     instructor_register,
     send_otp,
     validate_otp,
-    reset_password
+    reset_password,
+    //Instructor Profile
+    get_instructor,
+    edit_instructor
 }

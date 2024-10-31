@@ -22,7 +22,7 @@ const otp_schema = mongoose.Schema({
     created_at: {
         type: Date,
         default: Date.now(),
-        expires: 60 * 2,
+        expires: "2m",
     },
 })
 //send otp verification mail when otp is saved in db
