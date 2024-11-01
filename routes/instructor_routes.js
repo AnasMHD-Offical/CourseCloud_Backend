@@ -1,6 +1,7 @@
 //Importing Es modules
 import express from "express"
 import { instructor_login, instructor_register, send_otp, validate_otp, reset_password, get_instructor, edit_instructor } from "../controller/instructor_controller.js"
+import { get_category } from "../controller/category_controller.js"
 const instructor_route = express.Router()
 
 
@@ -28,6 +29,9 @@ instructor_route.get("/get_instructor/:id", get_instructor)
 //Route for edit instructor
 instructor_route.patch("/edit_instructor",edit_instructor)
 
+//* <----------------------- Instructor create course ---------------------------------->
 
+//Route for get course category to instructor side
+instructor_route.get("/get_category_instructor",get_category)
 //Exporting instructor_route module
 export default instructor_route

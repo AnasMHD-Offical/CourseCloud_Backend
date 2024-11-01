@@ -6,6 +6,7 @@ import { hash_password, compare_password } from "../utils/password_manager.js"
 import { generate_access_token, generate_refresh_token } from "../utils/JWT/generateTokens.js"
 import { store_token } from "../utils/JWT/StoreCookie.js"
 import refresh_token_model from "../models/refresh_token.js"
+import { get_category } from "./category_controller.js"
 import jwt from "jsonwebtoken"
 import validator from "validator"
 
@@ -138,7 +139,7 @@ const send_otp = async (req, res) => {
         if (!is_instructor_exist && For === "registration" || is_instructor_exist && For === "forgot_password") {
             //calling function to generate otp
             console.log("hey");
-            
+
             if (!is_instructor_exist || !is_instructor_exist.is_blocked) {
                 console.log("hey");
                 let otp = await generate_otp()
@@ -258,7 +259,7 @@ const get_instructor = async (req, res) => {
 const edit_instructor = async (req, res) => {
     const { name, email, mobile, dob, current_password, new_password, profile, _id } = req.body
     console.log(req.body);
-    
+
     try {
         let isChanged = false
         const get_instructor = await instructor_model.findOne({ _id })
@@ -279,7 +280,7 @@ const edit_instructor = async (req, res) => {
                 get_instructor.dob = dob
                 isChanged = true
             }
-            if (current_password !== "" && new_password!== "") {
+            if (current_password !== "" && new_password !== "") {
                 const is_password_same = await compare_password(current_password, get_instructor?.password)
                 if (is_password_same || !get_instructor?.googleId) {
                     if (new_password !== current_password || new_password !== "") {
@@ -320,6 +321,10 @@ const edit_instructor = async (req, res) => {
     }
 }
 
+//* <--------------------------- Create course Management ------------------------------------>
+
+
+
 //exporting instructor controllers
 export {
     //Instructor Auth
@@ -330,5 +335,6 @@ export {
     reset_password,
     //Instructor Profile
     get_instructor,
-    edit_instructor
+    edit_instructor,
+    //Create course manangement
 }
