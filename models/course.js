@@ -16,7 +16,7 @@ const course_schema = mongoose.Schema({
     instructor_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "instructor_model",
-        required: true
+        // required: true
     },
     language: {
         type: String,
@@ -31,7 +31,7 @@ const course_schema = mongoose.Schema({
         type: String
     },
     lessions: {
-        type: mongoose.Schema.Types.Array,
+        type: [mongoose.Schema.Types.ObjectId],
         required: true
     },
     thumbnail: {
@@ -46,10 +46,7 @@ const course_schema = mongoose.Schema({
     given_price: {
         type: String
     },
-    features: {
-        type: [String]
-    },
-    captions: {
+    requirements: {
         type: [String]
     },
     objectives: {
@@ -66,7 +63,7 @@ const course_schema = mongoose.Schema({
         type: String
     },
     target_students: {
-        type: String
+        type: [String]
     },
     subject: {
         type: String

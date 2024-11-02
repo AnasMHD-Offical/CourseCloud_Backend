@@ -9,6 +9,8 @@ import refresh_token_model from "../models/refresh_token.js"
 import { get_category } from "./category_controller.js"
 import jwt from "jsonwebtoken"
 import validator from "validator"
+import course_model from "../models/course.js"
+import lesson_model from "../models/lesson.js"
 
 
 //* <------------------------------- Instructor Auth ---------------------------------->
@@ -323,6 +325,198 @@ const edit_instructor = async (req, res) => {
 
 //* <--------------------------- Create course Management ------------------------------------>
 
+const add_course = async (req, res) => {
+    console.log(req.body);
+
+    try {
+        const { course_plan, course_curriculam, course_preview, instructor_id } = req.body
+        const is_course_exist = await course_model.findOne({ title: { $regex: new RegExp(`^${course_preview.title}$`, 'i') } })
+        console.log(is_course_exist);
+
+        if (!is_course_exist) {
+            console.log("here");
+
+            const new_course = new course_model({
+                title: course_preview.title,
+                subtitle: course_preview.subtitle,
+                description: course_preview.description,
+                instructor_id: instructor_id,
+                language: course_preview.language,
+                difficulty: course_preview.difficulty,
+                category: course_preview.category,
+                subCategory: course_preview.subcategory,
+                thumbnail: course_preview.thumbnail,
+                actual_price: course_preview.price,
+                objectives: course_plan.learningObjectives,
+                requirements: course_plan.requirements,
+                target_students: course_plan.targetAudiences,
+                subject: course_preview.subject,
+            })
+            console.log("hello");
+
+            const created_course = await new_course.save()
+            console.log(created_course);
+
+            if (created_course) {
+                console.log("here to the lession");
+                console.log(created_course._id);
+
+                const duplicateLessons = await Promise.all(
+                    course_curriculam.map(async (lesson) => {
+                        return await lesson_model.findOne({ title: { $regex: new RegExp(`^${lesson.title}$`, 'i') } })
+                    })
+                );
+                console.log("here to the lession here");
+                console.log(duplicateLessons);
+
+                if (duplicateLessons.some((lesson) => lesson !== null)) {
+                    return res.status(409).json({
+                        message: "Duplicate lessons found. Try creating a course without duplication.",
+                        success: false,
+                    });
+                }
+
+                // Create lessons if no duplicates are found
+                const lesson_created = await Promise.all(
+                    course_curriculam.map(async (lesson) => {
+                        try {
+                            console.log("Creating lesson:", lesson);  // Log lesson data
+
+                            const new_lesson = new lesson_model({
+                                category_id: created_course._id,
+                                title: lesson.title,
+                                description: lesson.description,
+                                video_tutorial_link: lesson.video_tutorial,
+                                assignment_link: lesson.assignment,
+                            });
+
+                            const savedLesson = await new_lesson.save();
+                            console.log("Lesson created successfully:", savedLesson);
+                            return savedLesson;
+                        } catch (lessonError) {
+                            console.error("Error creating lesson:", lessonError);
+                            throw new Error(`Error creating lesson "${lesson.title}": ${lessonError.message}`);
+                        }
+                    })
+                );
+
+
+                console.log(lesson_created);
+                if (lesson_created) {
+                    const lessions = lesson_created.map((lesson) => (lesson._id))
+                    console.log(lessions);
+                    created_course.lessions = lessions
+                    const saved_lessons = await created_course.save()
+                    if (saved_lessons) {
+                        res.status(200)
+                            .json({ message: "Course created successfully", success: true, course_id: created_course._id })
+                    } else {
+                        res.status(400)
+                            .json({ message: "unexcpected error while uploading to database", success: false })
+                    }
+
+                }
+
+
+
+
+            } else {
+                res.status(400)
+                    .json({ message: "unexcpected error while uploading to database", success: false })
+            }
+        } else {
+            res.status(409)
+                .json({ message: "Course already exist. Try another one", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+// const add_course = async (req, res) => {
+//     console.log(req.body);
+
+//     try {
+//         const { course_plan, course_curriculam, course_preview, instructor_id } = req.body;
+//         const is_course_exist = await course_model.findOne({
+//             title: { $regex: new RegExp(`^${course_preview.title}$`, 'i') },
+//         });
+//         console.log(is_course_exist);
+
+//         if (!is_course_exist) {
+//             const new_course = new course_model({
+//                 title: course_preview.title,
+//                 subtitle: course_preview.subtitle,
+//                 description: course_preview.description,
+//                 instructor_id: instructor_id,
+//                 language: course_preview.language,
+//                 difficulty: course_preview.difficulty,
+//                 category: course_preview.category,
+//                 subCategory: course_preview.subcategory,
+//                 thumbnail: course_preview.thumbnail,
+//                 actual_price: course_preview.price,
+//                 objectives: course_plan.learningObjectives,
+//                 requirements: course_plan.requirements,
+//                 target_students: course_plan.targetAudiences,
+//                 subject: course_preview.subject,
+//             });
+//             const created_course = await new_course.save();
+//             console.log("Created course:", created_course);
+//             console.log(course_curriculam);
+
+
+//             if (created_course) {
+//                 try {
+//                     const lesson_created = await Promise.all(
+//                         course_curriculam.map(async (lesson) => {
+//                             const new_lesson = new lesson_model({
+//                                 category_id: created_course._id, // Ensure this is included and matches schema type
+//                                 title: lesson.title,
+//                                 description: lesson.description,
+//                                 video_tutorial_link: lesson.video_tutorial,
+//                                 assignment_link: lesson.assignment,
+//                             });
+//                             const savedLesson = await new_lesson.save();
+//                             console.log("Lesson created successfully:", savedLesson);
+//                             return savedLesson;
+//                         })
+//                     );
+
+//                     console.log("All lessons created successfully:", lesson_created);
+//                     res.status(200).json({
+//                         message: "Course created successfully",
+//                         success: true,
+//                         course_id: created_course._id,
+//                     });
+//                 } catch (lessonError) {
+//                     console.error("Error during lesson creation:", lessonError.message, lessonError.stack);
+//                     res.status(500).json({
+//                         message: "Error creating lessons",
+//                         success: false,
+//                         error: lessonError.message,
+//                     });
+//                 }
+//             } else {
+//                 res.status(400).json({
+//                     message: "Unexpected error while uploading to database",
+//                     success: false,
+//                 });
+//             }
+//         } else {
+//             res.status(409).json({
+//                 message: "Course already exists. Try another title.",
+//                 success: false,
+//             });
+//         }
+//     } catch (error) {
+//         console.error("Error in add_course:", error.message, error.stack);
+//         res.status(500).json({
+//             message: "Something went wrong",
+//             success: false,
+//             error: error.message,
+//         });
+//     }
+// };
 
 
 //exporting instructor controllers
@@ -337,4 +531,5 @@ export {
     get_instructor,
     edit_instructor,
     //Create course manangement
+    add_course
 }
