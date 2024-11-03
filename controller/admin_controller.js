@@ -512,7 +512,7 @@ const add_sub_category = async (req, res) => {
             // tif the sub category not exist then go for furthur process
             if (is_sub_category_exist.length === 0) {
                 // add the new sub category to the array by spread operator otherwise it will override the existing one
-                get_category.sub_category = [...sub_categories, { title, description, _id: sub_categories.length, status: true }]
+                get_category.sub_category = [...sub_categories, { title, description, _id: sub_categories.length, category_id:get_category._id, status: true }]
                 // The editing the sub category to the db
                 const saved = await get_category.save()
                 console.log(saved);
@@ -561,6 +561,7 @@ const edit_sub_category = async (req, res) => {
 
                 //Setting the updated datas into the subcategory array in category db
                 get_category.sub_category.set(sub_id, {
+                    category_id: get_category._id,
                     title: title,
                     description: description,
                     _id: sub_id,
