@@ -1,4 +1,5 @@
 import student_model from "../models/student.js"
+import course_model from "../models/course.js"
 import otp_model from "../models/otp.js"
 import { send_verification_mail } from "../utils/nodemailer/send_verification_mail.js"
 import { generate_otp } from "../utils/otp_generator/otp_genarator.js"
@@ -8,6 +9,12 @@ import { store_token } from "../utils/JWT/StoreCookie.js"
 import jwt from "jsonwebtoken"
 import refresh_token_model from "../models/refresh_token.js"
 import validator from "validator"
+import lesson_model from "../models/lesson.js"
+import category_model from "../models/category.js"
+import cart_model from "../models/cart.js"
+import mongoose from "mongoose"
+import wishlist_model from "../models/wishlist.js"
+const ObjectId = mongoose.Types.ObjectId
 
 //Controller to handle student login 
 const student_login = async (req, res) => {
@@ -134,9 +141,9 @@ const send_otp = async (req, res) => {
 
         //if the user doesn't exist then genearate otp and save it to the db
         if (!is_student_exist && For === "registration" || is_student_exist && For === "forgot_password") {
-           console.log("hello world here");
-           
-           if (!is_student_exist || !is_student_exist.is_blocked) {
+            console.log("hello world here");
+
+            if (!is_student_exist || !is_student_exist.is_blocked) {
                 console.log("hello world here");
                 //calling function to generate otp
                 let otp = await generate_otp()
@@ -160,9 +167,9 @@ const send_otp = async (req, res) => {
                     return res.status(200)
                         .json({ message: "OTP sent successfully to the given email", success: true })
                 }
-            }else{
+            } else {
                 res.status(403)
-                .json({message:"Access denied. Student was blocked.",success:false})
+                    .json({ message: "Access denied. Student was blocked.", success: false })
             }
             //if the user is already exist in the db . sending a reject response to the client side.
         } else {
@@ -308,12 +315,436 @@ const refresh_token = async (req, res) => {
 
     }
 }
+
+const student_logout = async (req, res) => {
+    try {
+        //getting refresh token from cookie
+        const student_refresh_token = req.cookies["student_refresh_token"]
+        console.log(student_refresh_token);
+        // Removing the refresh token from db
+        const removedRefresh_token = await refresh_token_model.deleteOne({ token: student_refresh_token })
+        if (removedRefresh_token) {
+            // Removing the refresh token from cookie
+            res.cookie("student_refresh_token", "", {
+                httpOnly: true,
+                expires: new Date(0),
+            });
+            // Removing the access token from cookie
+            res.cookie("student_refresh_token", "", {
+                httpOnly: true,
+                expires: new Date(0),
+            });
+            //if all workes well the proceed with resolved response with status 200
+            res.status(200)
+                .json({ message: "Student Logout Successfully", success: true })
+        } else {
+            //if any error happended with the delete in db throw an error
+            res.status(400)
+                .json({ message: "Unexpected error occurs. Try again", success: false })
+        }
+    } catch (error) {
+        // if any other will found thnrow an rejected response with 500 status code and the error.
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+
+}
+
+//Controller for handle getting the courses 
+const get_courses = async (req, res) => {
+    try {
+        const get_course = await course_model.find({ is_blocked: false }).sort({ createdAt: -1 })
+        // console.log(get_course);
+
+        if (get_course) {
+            res.status(200)
+                .json({ message: "Courses fetched successfully", success: true, courses: get_course })
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error })
+    }
+}
+
+//Controller for handle getting a course by its _id
+const get_course = async (req, res) => {
+    try {
+        const _id = req.params.id
+
+        const get_course = await course_model.findOne({ _id }).populate("category").populate("instructor_id").populate("lessons")
+        // const lessons = await lesson_model.find().populate("lessions")
+        console.log(get_course);
+        console.log(get_course.category.title);
+        // console.log(lessons);
+        if (get_course) {
+            res.status(200)
+                .json({ message: "Course fetched successfully", success: true, course: get_course })
+        } else {
+            res.status(404)
+                .json({ message: "Course not found", success: false })
+        }
+
+
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+//Controller for handling getting courses by category
+const get_courses_by_category = async (req, res) => {
+    try {
+        const { id, subcategory } = req.params
+        // console.log(id, subcategory);
+
+        const get_courses_by_category = await course_model.find({ category: id }).populate("category").populate("instructor_id").populate("lessons")
+        if (get_courses_by_category) {
+
+            if (subcategory) {
+                const get_courses_by_subcategory = await course_model.find({ subCategory: subcategory }).populate("category").populate("instructor_id").populate("lessons")
+                if (get_courses_by_subcategory) {
+                    res.status(200)
+                        .json({ message: "Courses find by Subcategory & category fetched successfully", success: true, BySubcategory: get_courses_by_subcategory, ByCategory: get_courses_by_category })
+                }
+            } else {
+                res.status(200)
+                    .json({ message: "Courses find by category fetched successfully", success: true, ByCategory: get_courses_by_category })
+            }
+        } else {
+            res.status(404)
+                .json({ message: "No courses found by the category", success: false })
+        }
+
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+//Controller to get Cart by User id
+const get_cart = async (req, res) => {
+    try {
+        const _id = req.params.id
+        console.log(_id);
+
+        const get_cart = await cart_model.findOne({ student_id: _id }).populate({ path: "cart_items.course_id", populate: "instructor_id" })
+        console.log(get_cart);
+
+        if (get_cart) {
+            res.status(200)
+                .json({ message: "Cart items fetched successfully", success: true, cart_items: get_cart })
+        } else {
+            res.status(404)
+                .json({ message: "No items found in the cart", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+//Controller to add an item to the cart
+const add_to_cart = async (req, res) => {
+    try {
+        const { course_id, student_id, price } = req.body
+        const get_cart = await cart_model.findOne({ student_id: student_id })
+        console.log("cart Found :", get_cart);
+
+        const is_course_exist = await cart_model.findOne({ student_id: student_id, "cart_items.course_id": course_id })
+        console.log("course existed :", is_course_exist);
+
+        if (get_cart) {
+            if (!is_course_exist) {
+                get_cart.cart_items = [...get_cart.cart_items, { course_id: course_id, price: price }]
+                const saved = await get_cart.save()
+                if (saved) {
+                    res.status(200)
+                        .json({ message: "Course Added to Cart successfully", success: true })
+                } else {
+                    res.status(400)
+                        .json({ message: "Unexpected error occurs. Try Again", success: false })
+                }
+            } else {
+                res.status(409)
+                    .json({ message: "Course already added to the cart", success: false })
+            }
+        } else {
+            const new_cart = new cart_model({
+                student_id: student_id,
+                cart_items: {
+                    course_id: course_id,
+                    price: price
+                }
+            })
+            const added = await new_cart.save()
+            if (added) {
+                res.status(200)
+                    .json({ message: "Course Added to Cart successfully", success: true })
+            } else {
+                res.status(400)
+                    .json({ message: "Unexpected error occurs. Try Again", success: false })
+            }
+        }
+
+
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+        console.log(error.message);
+
+    }
+}
+
+//Controller to remove items 
+const remove_from_cart = async (req, res) => {
+    try {
+        const { student_id, course_id } = req.params
+
+        const get_cart = await cart_model.findOne({ student_id })
+        const { cart_items } = get_cart
+
+        if (get_cart) {
+
+            const filtered_cart_items = cart_items.filter((items) => {
+                return !items._id.equals(new ObjectId(String(course_id)));
+            })
+
+            get_cart.cart_items = filtered_cart_items
+            const deleted = await get_cart.save()
+            if (deleted) {
+                res.status(200)
+                    .json({ message: "Item remove from cart successfully", success: true })
+            }
+        } else {
+            res.status(404)
+                .json({ message: "Cart not found", success: false })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const get_wishlist = async (req, res) => {
+    try {
+        const _id = req.params.id
+        console.log(_id);
+
+        const get_wishlist = await wishlist_model.findOne({ student_id: _id }).populate({ path: "wishlist_items", populate: "instructor_id" })
+        console.log(get_wishlist);
+        if (get_wishlist) {
+            res.status(200)
+                .json({ message: "Wishlist items fetched successfully", success: true, wishlist_items: get_wishlist })
+        } else {
+            res.status(404)
+                .json({ message: "No items found in the wishlist", success: false })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const add_to_wishlist = async (req, res) => {
+    try {
+        const { course_id, student_id } = req.body
+        console.log(student_id);
+
+        const get_wishlist = await wishlist_model.findOne({ student_id: student_id })
+        console.log("Wishlist Found :", get_wishlist);
+
+        const is_course_exist = await wishlist_model.findOne({ student_id: student_id, wishlist_items: course_id })
+        console.log("course existed :", is_course_exist);
+
+        if (get_wishlist) {
+            if (!is_course_exist) {
+                get_wishlist.wishlist_items = [...get_wishlist.wishlist_items, course_id]
+                const saved = await get_wishlist.save()
+                if (saved) {
+                    res.status(200)
+                        .json({ message: "Course Added to wishlist successfully", success: true })
+                } else {
+                    res.status(400)
+                        .json({ message: "Unexpected error occurs. Try Again", success: false })
+                }
+            } else {
+                res.status(409)
+                    .json({ message: "Course already added to the wishlist", success: false })
+            }
+        } else {
+            const new_wishlist = new wishlist_model({
+                student_id: student_id,
+                wishlist_items: course_id,
+            })
+            const added = await new_wishlist.save()
+            if (added) {
+                res.status(200)
+                    .json({ message: "Course Added to wishlist successfully", success: true })
+            } else {
+                res.status(400)
+                    .json({ message: "Unexpected error occurs. Try Again", success: false })
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const remove_from_wishlist = async (req, res) => {
+    try {
+        const { student_id, course_id } = req.params
+
+        const get_wishlist = await wishlist_model.findOne({ student_id })
+        const { wishlist_items } = get_wishlist
+
+        if (get_wishlist) {
+
+            const filtered_wishlist_items = wishlist_items.filter((items) => {
+                return !items.equals(new ObjectId(String(course_id)));
+            })
+
+            get_wishlist.wishlist_items = filtered_wishlist_items
+            const deleted = await get_wishlist.save()
+            if (deleted) {
+                res.status(200)
+                    .json({ message: "Item remove from Wishlist successfully", success: true })
+            }
+        } else {
+            res.status(404)
+                .json({ message: "Wishlist not found", success: false })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const get_student_data = async (req, res) => {
+    try {
+        const _id = req.params.id
+        console.log(_id);
+
+        const get_student = await student_model.findOne({ _id })
+        console.log(get_student);
+        if (get_student) {
+            console.log("Hello");
+
+            res.status(200)
+                .json({ message: "Student data fetched successfully.", success: true, student_data: get_student })
+        } else {
+            res.status(404)
+                .json({ message: "Student is not exist . try another one", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const edit_profile = async (req, res) => {
+    const { name, email, mobile, dob, current_password, new_password, profile, _id, proffession, about } = req.body
+    console.log(req.body);
+
+    try {
+        let isChanged = false
+        const get_student = await student_model.findOne({ _id })
+        if (get_student) {
+            if (name !== get_student.name && name !== "") {
+                get_student.name = name
+                isChanged = true
+            }
+            if (email !== get_student.email && email !== "") {
+                get_student.email = email
+                isChanged = true
+            }
+            if (mobile !== get_student.mobile && mobile !== "") {
+                get_student.mobile = mobile
+                isChanged = true
+            }
+            if (dob !== get_student?.dob && dob !== "") {
+                get_student.dob = dob
+                isChanged = true
+            }
+            if (current_password !== "" && new_password !== "") {
+                const is_password_same = await compare_password(current_password, get_student?.password)
+                if (is_password_same || !get_student?.googleId) {
+                    if (new_password !== current_password || new_password !== "") {
+                        get_student.password = new_password
+                        isChanged = true
+                    }
+                } else if (get_student?.googleId) {
+                    if (new_password !== "") {
+                        get_student.password = new_password
+                        isChanged = true
+                    }
+                } else {
+                    res.status(400)
+                        .json({ message: "Current password is wrong . Try to enter a valid password", success: false })
+                }
+            }
+            if (profile !== get_student?.profile && profile !== "") {
+                get_student.profile = profile
+                isChanged = true
+            }
+            if (proffession !== get_student?.proffession && proffession !== "") {
+                get_student.proffession = proffession
+                isChanged = true
+            }
+            if (about !== get_student?.about && about !== "") {
+                get_student.about = about
+                isChanged = true
+            }
+
+            const isUpdated = await get_student.save()
+            if (isUpdated && !isChanged) {
+                res.status(200)
+                    .json({ message: "Instructor updated successfully. No changes made", success: true })
+            } else {
+                res.status(200)
+                    .json({ message: "Instructor updated successfully.", success: true })
+            }
+
+        } else {
+            res.status(404)
+                .json({ message: "Instructor not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went Wrong", success: false, error })
+    }
+}
+
 //exporting student controllers
 export {
+    // Students Auth 
     student_login,
     student_register,
     send_otp,
     validate_otp,
     refresh_token,
-    reset_password
+    reset_password,
+    student_logout,
+    // Students Landing and Home page
+    get_courses,
+    get_course,
+    get_courses_by_category,
+    //Cart
+    get_cart,
+    add_to_cart,
+    remove_from_cart,
+    //Wishlist
+    get_wishlist,
+    add_to_wishlist,
+    remove_from_wishlist,
+    //Profile
+    get_student_data,
+    edit_profile
 }

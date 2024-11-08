@@ -27,6 +27,10 @@ const instructor_schema = mongoose.Schema({
     dob: {
         type: String
     },
+    googleId: {
+        type: String,
+        sparse: true,
+    },
     joined_at: {
         type: Date,
         default: Date.now()

@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 const lesson_schema = mongoose.Schema({
 
-    category_id: {
+    course_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "course_model",
+        ref: "course",
         // required: true
     },
     title: {
@@ -21,6 +21,6 @@ const lesson_schema = mongoose.Schema({
     }
 })
 
-const lesson_model = mongoose.model("lession", lesson_schema)
+const lesson_model = mongoose.model("lesson", lesson_schema)
 
 export default lesson_model

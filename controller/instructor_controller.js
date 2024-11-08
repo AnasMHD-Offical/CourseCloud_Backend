@@ -259,7 +259,7 @@ const get_instructor = async (req, res) => {
 }
 //Controller to handle edit instructor data
 const edit_instructor = async (req, res) => {
-    const { name, email, mobile, dob, current_password, new_password, profile, _id } = req.body
+    const { name, email, mobile, dob, current_password, new_password, profile, _id, proffession, about } = req.body
     console.log(req.body);
 
     try {
@@ -299,8 +299,16 @@ const edit_instructor = async (req, res) => {
                         .json({ message: "Current password is wrong . Try to enter a valid password", success: false })
                 }
             }
-            if (profile !== get_instructor?.profile && profile !== "") {
+            if (profile !== get_instructor?.profile && profile !== "" ) {
                 get_instructor.profile = profile
+                isChanged = true
+            }
+            if (proffession !== get_instructor?.proffession && proffession !== "" ) {
+                get_instructor.proffession = proffession
+                isChanged = true
+            }
+            if (about !== get_instructor?.about && about !== "") {
+                get_instructor.about = about
                 isChanged = true
             }
 
@@ -407,6 +415,8 @@ const add_course = async (req, res) => {
                     console.log(lessions);
                     created_course.lessions = lessions
                     const saved_lessons = await created_course.save()
+                    console.log("Lesson :",saved_lessons);
+                    
                     if (saved_lessons) {
                         res.status(200)
                             .json({ message: "Course created successfully", success: true, course_id: created_course._id })
@@ -416,9 +426,6 @@ const add_course = async (req, res) => {
                     }
 
                 }
-
-
-
 
             } else {
                 res.status(400)
@@ -433,6 +440,8 @@ const add_course = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error })
     }
 }
+
+
 // const add_course = async (req, res) => {
 //     console.log(req.body);
 
@@ -531,5 +540,6 @@ export {
     get_instructor,
     edit_instructor,
     //Create course manangement
-    add_course
+    add_course,
+
 }

@@ -12,7 +12,7 @@ export const googleAuth = async (req, res) => {
         const { email, sub, name, picture } = req.body.data
         const role = req.body.role
         // console.log(req.body);
-        console.log("Here",req.body);
+        console.log("Here", req.body);
         const google_id = sub
 
         let student = await student_model.findOne({ email })
@@ -49,10 +49,11 @@ export const googleAuth = async (req, res) => {
                     .json({
                         message: "google student register and login successfully",
                         success: true,
-                        student_data: {
+                        user_data: {
                             _id: new_student._id,
                             email: new_student.email,
-                            name: new_student.name
+                            name: new_student.name,
+                            role: "student"
                         },
                         access_token,
                         role: "student"
@@ -79,10 +80,11 @@ export const googleAuth = async (req, res) => {
                         .json({
                             message: "Google login succesfully",
                             success: true,
-                            student_data: {
+                            user_data: {
                                 _id: student._id,
                                 email: student.email,
-                                name: student.name
+                                name: student.name,
+                                role: "student"
                             },
                             access_token,
                             role: "student"
@@ -96,7 +98,7 @@ export const googleAuth = async (req, res) => {
         } else if (role === "instructor") {
             if (!instructor) {
                 console.log("here");
-                
+
                 const new_instructor = await instructor_model.create({
                     googleId: google_id,
                     email,
@@ -125,10 +127,11 @@ export const googleAuth = async (req, res) => {
                     .json({
                         message: "google instructor register and login successfully",
                         success: true,
-                        instructor_data: {
+                        user_data: {
                             _id: new_instructor._id,
                             email: new_instructor.email,
-                            name: new_instructor.name
+                            name: new_instructor.name,
+                            role: "instructor"
                         },
                         access_token,
                         role: "instructor"
@@ -155,10 +158,11 @@ export const googleAuth = async (req, res) => {
                         .json({
                             message: "Google login succesfully",
                             success: true,
-                            instructor_data: {
+                            user_data: {
                                 _id: instructor._id,
                                 email: instructor.email,
-                                name: instructor.name
+                                name: instructor.name,
+                                role: "instructor"
                             },
                             access_token,
                             role: "instructor"

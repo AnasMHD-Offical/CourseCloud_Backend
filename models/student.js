@@ -22,6 +22,12 @@ const student_schema = mongoose.Schema({
     dob: {
         type: String,
     },
+    about: {
+        type: String
+    },
+    proffession: {
+        type: String
+    },
     googleId: {
         type: String,
         sparse: true,

@@ -199,7 +199,8 @@ const reset_password = async (req, res) => {
 const admin_logout = async (req, res) => {
     try {
         //getting refresh token from cookie
-        const admin_refresh_token = req.cookies.admin_refresh_token || res.cookies.student_refresh_token || res.cookies.instructor_refresh_token
+        // const admin_refresh_token = req.cookies.admin_refresh_token || res.cookies.student_refresh_token || res.cookies.instructor_refresh_token
+        const admin_refresh_token = req.cookies["admin_refresh_token"]
         console.log(admin_refresh_token);
         // Removing the refresh token from db
         const removedRefresh_token = await refresh_token_model.deleteOne({ token: admin_refresh_token })

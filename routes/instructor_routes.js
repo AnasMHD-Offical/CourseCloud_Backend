@@ -27,7 +27,7 @@ instructor_route.put("/reset_password", reset_password)
 instructor_route.get("/get_instructor/:id", get_instructor)
 
 //Route for edit instructor
-instructor_route.patch("/edit_instructor", edit_instructor)
+instructor_route.put("/edit_instructor", edit_instructor)
 
 //* <----------------------- Instructor create course ---------------------------------->
 

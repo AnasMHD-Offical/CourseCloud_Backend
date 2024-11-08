@@ -15,7 +15,7 @@ const course_schema = mongoose.Schema({
     },
     instructor_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "instructor_model",
+        ref: "instructor",
         // required: true
     },
     language: {
@@ -26,12 +26,13 @@ const course_schema = mongoose.Schema({
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: "category"
     },
     subCategory: {
         type: String
     },
-    lessions: {
-        type: [mongoose.Schema.Types.ObjectId],
+    lessons: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "lesson" }],
         required: true
     },
     thumbnail: {
@@ -71,6 +72,6 @@ const course_schema = mongoose.Schema({
 
 }, { timestamps: true })
 
-const course_model = mongoose.model("course",course_schema)
+const course_model = mongoose.model("course", course_schema)
 
 export default course_model
