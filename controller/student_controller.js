@@ -330,7 +330,7 @@ const student_logout = async (req, res) => {
                 expires: new Date(0),
             });
             // Removing the access token from cookie
-            res.cookie("student_refresh_token", "", {
+            res.cookie("student_access_token", "", {
                 httpOnly: true,
                 expires: new Date(0),
             });
@@ -706,15 +706,15 @@ const edit_profile = async (req, res) => {
             const isUpdated = await get_student.save()
             if (isUpdated && !isChanged) {
                 res.status(200)
-                    .json({ message: "Instructor updated successfully. No changes made", success: true })
+                    .json({ message: "Student updated successfully. No changes made", success: true })
             } else {
                 res.status(200)
-                    .json({ message: "Instructor updated successfully.", success: true })
+                    .json({ message: "Student updated successfully.", success: true })
             }
 
         } else {
             res.status(404)
-                .json({ message: "Instructor not found", success: false })
+                .json({ message: "Student not found", success: false })
         }
     } catch (error) {
         res.status(500)

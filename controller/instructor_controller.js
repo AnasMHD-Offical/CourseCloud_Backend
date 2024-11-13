@@ -11,6 +11,8 @@ import jwt from "jsonwebtoken"
 import validator from "validator"
 import course_model from "../models/course.js"
 import lesson_model from "../models/lesson.js"
+import mongoose from "mongoose"
+const ObjectId = mongoose.Types.ObjectId
 
 
 //* <------------------------------- Instructor Auth ---------------------------------->
@@ -235,6 +237,38 @@ const reset_password = async (req, res) => {
     }
 }
 
+const instructor_logout = async (req,res) =>{
+    try {
+        //getting refresh token from cookie
+        const instructor_refresh_token = req.cookies["instructor_refresh_token"]
+        console.log(instructor_refresh_token);
+        // Removing the refresh token from db
+        const removedRefresh_token = await refresh_token_model.deleteOne({ token: instructor_refresh_token })
+        if (removedRefresh_token) {
+            // Removing the refresh token from cookie
+            res.cookie("instructor_refresh_token", "", {
+                httpOnly: true,
+                expires: new Date(0),
+            });
+            // Removing the access token from cookie
+            res.cookie("instructor_access_token", "", {
+                httpOnly: true,
+                expires: new Date(0),
+            });
+            //if all workes well the proceed with resolved response with status 200
+            res.status(200)
+                .json({ message: "Instructor Logout Successfully", success: true })
+        } else {
+            //if any error happended with the delete in db throw an error
+            res.status(400)
+                .json({ message: "Unexpected error occurs. Try again", success: false })
+        }
+    } catch (error) {
+        // if any other will found thnrow an rejected response with 500 status code and the error.
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error:error.message })
+    }
+}
 //* <-------------------------- Instructor Profile management --------------------------> 
 
 //Controller to handle get instructor data
@@ -299,11 +333,11 @@ const edit_instructor = async (req, res) => {
                         .json({ message: "Current password is wrong . Try to enter a valid password", success: false })
                 }
             }
-            if (profile !== get_instructor?.profile && profile !== "" ) {
+            if (profile !== get_instructor?.profile && profile !== "") {
                 get_instructor.profile = profile
                 isChanged = true
             }
-            if (proffession !== get_instructor?.proffession && proffession !== "" ) {
+            if (proffession !== get_instructor?.proffession && proffession !== "") {
                 get_instructor.proffession = proffession
                 isChanged = true
             }
@@ -333,6 +367,7 @@ const edit_instructor = async (req, res) => {
 
 //* <--------------------------- Create course Management ------------------------------------>
 
+//Controller to handle add course
 const add_course = async (req, res) => {
     console.log(req.body);
 
@@ -415,8 +450,8 @@ const add_course = async (req, res) => {
                     console.log(lessions);
                     created_course.lessions = lessions
                     const saved_lessons = await created_course.save()
-                    console.log("Lesson :",saved_lessons);
-                    
+                    console.log("Lesson :", saved_lessons);
+
                     if (saved_lessons) {
                         res.status(200)
                             .json({ message: "Course created successfully", success: true, course_id: created_course._id })
@@ -437,9 +472,64 @@ const add_course = async (req, res) => {
         }
     } catch (error) {
         res.status(500)
-            .json({ message: "Something went wrong", success: false, error })
+            .json({ message: "Something went wrong", success: false, error: error.message })
     }
 }
+
+//Controller to handle the created courses
+const get_created_courses = async (req, res) => {
+    try {
+        const instructor_id = req.params.id
+        console.log(instructor_id);
+
+        const get_courses = await course_model.find({ instructor_id })
+        console.log(get_courses);
+
+        if (get_courses) {
+            res.status(200)
+                .json({ message: "Course created by the instructor fetched successfully", success: true, courses: get_courses })
+        } else {
+            res.status(404)
+                .json({ message: "No created course found by the instructor", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const get_course = async (req, res) => {
+    try {
+        const { id } = req.params
+        console.log(id);
+
+        const get_courses = await course_model.findOne({ _id: id }).populate("lessons")
+        console.log(get_courses);
+
+        if (get_courses) {
+            res.status(200)
+                .json({ message: "Course data fetched successfully", success: true, courses: get_courses })
+        } else {
+            res.status(404)
+                .json({ message: "Course not found. Try again", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const edit_course = async (req, res) => {
+    try {
+        const { course_plan, course_curriculam, course_preview, instructor_id, course_id } = req.body
+        const is_course_exist = await course_model.findOne({ _id: course_id })
+        console.log(is_course_exist);
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
 
 
 // const add_course = async (req, res) => {
@@ -536,10 +626,14 @@ export {
     send_otp,
     validate_otp,
     reset_password,
+    instructor_logout,
     //Instructor Profile
     get_instructor,
     edit_instructor,
     //Create course manangement
     add_course,
+    get_created_courses,
+    get_course,
+    edit_course,
 
 }
