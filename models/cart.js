@@ -14,7 +14,7 @@ const cart_schema = mongoose.Schema({
                 ref: "course"
             },
             price: {
-                type: String
+                type: mongoose.Schema.Types.Decimal128
             }
         }
     ]

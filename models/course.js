@@ -38,11 +38,12 @@ const course_schema = mongoose.Schema({
     thumbnail: {
         type: String
     },
-    entrolled_count: {
-        type: Number
+    enrolled_count: {
+        type: Number,
+        default : 0
     },
     actual_price: {
-        type: String,
+        type: mongoose.Schema.Types.Decimal128,
     },
     given_price: {
         type: String

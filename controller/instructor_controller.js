@@ -237,7 +237,7 @@ const reset_password = async (req, res) => {
     }
 }
 
-const instructor_logout = async (req,res) =>{
+const instructor_logout = async (req, res) => {
     try {
         //getting refresh token from cookie
         const instructor_refresh_token = req.cookies["instructor_refresh_token"]
@@ -266,7 +266,7 @@ const instructor_logout = async (req,res) =>{
     } catch (error) {
         // if any other will found thnrow an rejected response with 500 status code and the error.
         res.status(500)
-            .json({ message: "Something went wrong", success: false, error:error.message })
+            .json({ message: "Something went wrong", success: false, error: error.message })
     }
 }
 //* <-------------------------- Instructor Profile management --------------------------> 
@@ -389,7 +389,7 @@ const add_course = async (req, res) => {
                 category: course_preview.category,
                 subCategory: course_preview.subcategory,
                 thumbnail: course_preview.thumbnail,
-                actual_price: course_preview.price,
+                actual_price: parseFloat(course_preview.price),
                 objectives: course_plan.learningObjectives,
                 requirements: course_plan.requirements,
                 target_students: course_plan.targetAudiences,
@@ -522,8 +522,126 @@ const get_course = async (req, res) => {
 const edit_course = async (req, res) => {
     try {
         const { course_plan, course_curriculam, course_preview, instructor_id, course_id } = req.body
-        const is_course_exist = await course_model.findOne({ _id: course_id })
-        console.log(is_course_exist);
+        console.log(req.body);
+        let isChanged = false
+        const get_course = await course_model.findOne({ _id: course_id })
+        console.log(get_course);
+        if (get_course) {
+
+            if (course_preview.title !== get_course.title && course_preview.title !== "") {
+                get_course.title = course_preview.title
+                isChanged = true
+            }
+            if (course_preview.subtitle !== get_course.subtitle && course_preview.subtitle !== "") {
+                get_course.subtitle = course_preview.subtitle
+                isChanged = true
+            }
+            if (course_preview.description !== get_course.description && course_preview.description !== "") {
+                get_course.description = course_preview.description
+                isChanged = true
+            }
+            if (course_preview.language !== get_course.language && course_preview.language !== "") {
+                get_course.language = course_preview.language
+                isChanged = true
+            }
+            if (course_preview.difficulty !== get_course.difficulty && course_preview.difficulty !== "") {
+                get_course.difficulty = course_preview.difficulty
+                isChanged = true
+            }
+            if (course_preview.category !== get_course.category && course_preview.category !== "") {
+                get_course.category = course_preview.category
+                isChanged = true
+            }
+            if (course_preview.subcategory !== get_course.subCategory && course_preview.subcategory !== "") {
+                get_course.subCategory = course_preview.subcategory
+                isChanged = true
+            }
+            if (course_preview.thumbnail !== get_course.thumbnail && course_preview.thumbnail !== "") {
+                get_course.thumbnail = course_preview.thumbnail
+                isChanged = true
+            }
+            if (course_preview.price !== get_course.actual_price && course_preview.price !== "") {
+                get_course.actual_price = course_preview.price
+                isChanged = true
+            }
+            if (course_preview.subject !== get_course.actual_subject && course_preview.subject !== "") {
+                get_course.actual_subject = course_preview.subject
+                isChanged = true
+            }
+            if (course_plan.learningObjectives !== get_course.objectives && course_plan.learningObjectives.length !== 0) {
+                get_course.objectives = [...course_plan.learningObjectives]
+                isChanged = true
+            }
+            if (course_plan.requirements !== get_course.requirements && course_plan.requirements.length !== 0) {
+                get_course.requirements = [...course_plan.requirements]
+                isChanged = true
+            }
+            if (course_plan.targetAudiences !== get_course.target_students && course_plan.targetAudiences !== "") {
+                get_course.target_students = [...course_plan.targetAudiences]
+                isChanged = true
+            }
+
+            const lesson_updated = await Promise.all(
+                course_curriculam.map(async (lesson) => {
+                    try {
+                        console.log("Creating lesson:", lesson);  // Log lesson data
+
+                        const get_lesson = await lesson_model.findOne({ _id: lesson._id })
+                        console.log(get_lesson);
+
+                        if (lesson.title !== get_lesson?.title && lesson.title !== "") {
+                            get_lesson.title = lesson.title
+                            isChanged = true
+                        }
+                        if (lesson.description !== get_lesson?.description && lesson.description !== "") {
+                            get_lesson.description = lesson.description
+                            isChanged = true
+                        }
+                        if (lesson.video_tutorial_link !== get_lesson?.video_tutorial_link && lesson.video_tutorial_link !== "") {
+                            get_lesson.video_tutorial_link = lesson.video_tutorial_link
+                            isChanged = true
+                        }
+                        if (lesson.assignment_link !== get_lesson?.assignment_link && lesson.assignment_link !== "") {
+                            get_lesson.assignment_link = lesson.assignment_link
+                            isChanged = true
+                        }
+                        if (isChanged) {
+
+                            const savedLesson = await get_lesson.save();
+                            console.log("Lesson updated successfully:", savedLesson);
+                            return savedLesson;
+                        }
+
+                    } catch (lessonError) {
+                        console.error("Error creating lesson:", lessonError);
+                        throw new Error(`Error creating lesson "${lesson.title}": ${lessonError.message}`);
+                    }
+                })
+            );
+            if (isChanged) {
+                const lessions = lesson_updated.map((lesson) => (lesson._id))
+                console.log(lessions);
+                get_course.lessions = lessions
+                const course_updated = await get_course.save()
+                console.log("Lesson :", course_updated);
+
+                if (course_updated) {
+                    res.status(200)
+                        .json({ message: "Course edited successfully", success: true, course_id: course_updated._id })
+                } else {
+                    res.status(400)
+                        .json({ message: "unexcpected error while uploading to database", success: false })
+                }
+
+            } else {
+                res.status(200)
+                    .json({ message: "Course edited successfully. No changes made.", success: true, course_id: course_updated._id })
+            }
+
+        } else {
+            res.status(404)
+                .json({ message: "Course not found. Try again", success: false })
+        }
     } catch (error) {
         res.status(500)
             .json({ message: "Something went wrong", success: false, error: error.message })

@@ -375,10 +375,9 @@ const get_course = async (req, res) => {
         const _id = req.params.id
 
         const get_course = await course_model.findOne({ _id }).populate("category").populate("instructor_id").populate("lessons")
-        // const lessons = await lesson_model.find().populate("lessions")
-        console.log(get_course);
-        console.log(get_course.category.title);
+        // const lessons = await course_model.findOne({ _id })
         // console.log(lessons);
+        // console.log(get_course.category.title);
         if (get_course) {
             res.status(200)
                 .json({ message: "Course fetched successfully", success: true, course: get_course })
@@ -391,6 +390,8 @@ const get_course = async (req, res) => {
     } catch (error) {
         res.status(500)
             .json({ message: "Something went wrong", success: false, error: error.message })
+        console.log(error);
+
     }
 }
 
@@ -423,6 +424,8 @@ const get_courses_by_category = async (req, res) => {
             .json({ message: "Something went wrong", success: false, error: error.message })
     }
 }
+
+
 
 //Controller to get Cart by User id
 const get_cart = async (req, res) => {
@@ -458,7 +461,7 @@ const add_to_cart = async (req, res) => {
 
         if (get_cart) {
             if (!is_course_exist) {
-                get_cart.cart_items = [...get_cart.cart_items, { course_id: course_id, price: price }]
+                get_cart.cart_items = [...get_cart.cart_items, {course_id: course_id, price: price?.$numberDecimal}]
                 const saved = await get_cart.save()
                 if (saved) {
                     res.status(200)
@@ -721,6 +724,10 @@ const edit_profile = async (req, res) => {
             .json({ message: "Something went Wrong", success: false, error })
     }
 }
+
+
+
+
 
 //exporting student controllers
 export {
