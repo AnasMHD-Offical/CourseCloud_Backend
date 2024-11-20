@@ -32,16 +32,16 @@ student_route.post("/student_logout", student_logout)
 //*<--------------------------- Student Landing page & Home Page Routes ------------------------>
 
 //Route for handling get category
-student_route.get("/get_category", student_auth, get_category)
+student_route.get("/get_category", get_category)
 
 //Route for get courses 
-student_route.get("/get_courses", student_auth, get_courses)
+student_route.get("/get_courses", get_courses)
 
 //Route for get a course based on the course id 
-student_route.get("/get_course/:id", student_auth, get_course)
+student_route.get("/get_course/:id", get_course)
 
 //Route for get a course based on the category and sub category
-student_route.get("/get_courses_by_category/:id/:subcategory", student_auth, get_courses_by_category)
+student_route.get("/get_courses_by_category/:id/:subcategory", get_courses_by_category)
 
 // * <----------------------------- Cart management -------------------------------------------->
 //Route for get cart for each user
@@ -80,7 +80,7 @@ student_route.post("/create_enrollment", student_auth, createEnrollment)
 // Route for get the purchased course 
 student_route.get("/get_purchased_courses/:id", student_auth, get_purchased_courses)
 
-student_route.get("/get_course_by_search_sort_filter", course_search_sort_filter)
+student_route.get("/get_course_by_search_sort_filter",course_search_sort_filter)
 
 student_route.get("/get_course_length", get_courses_length)
 

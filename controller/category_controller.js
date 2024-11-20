@@ -15,9 +15,11 @@ const get_category = async (req, res) => {
     }
 }
 
+//Controller to handle course search, sort , filter opertions in course db
 const course_search_sort_filter = async (req, res) => {
     try {
         console.log(req.query);
+        // Getting the queries from the url
         const page = parseInt(req.query.page) || 0
         const limit = parseInt(req.query.limit) || 5
         const search = req.query.search || ""
@@ -29,7 +31,7 @@ const course_search_sort_filter = async (req, res) => {
         const starting_price = req.query.starting_price || 0
         const Ending_price = req.query.Ending_price || Infinity
 
-
+        // Object that contained the conditions to filter out data from the db
         const filterQuery = {
             is_blocked: false,
             ...(search !== ""
@@ -59,6 +61,7 @@ const course_search_sort_filter = async (req, res) => {
 
         }
 
+        //function to sort the db based on the user selection
         const getSortOrder = (sort) => {
             switch (sort) {
                 case "popularity":
@@ -76,30 +79,29 @@ const course_search_sort_filter = async (req, res) => {
                 case "AlphaAsc":
                     return { title: 1 };
                 default:
-                    return;
+                    return { createdAt: -1 };
             }
         }
 
-
-
-
-        const get_courses = await course_model.find(filterQuery).sort(getSortOrder(sort)).limit(limit).skip(page === 1 ? 0 : (page - 1) * limit)
+        //Getting the filtered, sorted , paginated data from the db 
+        const get_courses = await course_model.find(filterQuery).sort(getSortOrder(sort)).skip(page === 1 ? 0 : (page - 1) * limit).limit(limit)
         console.log(get_courses);
-        if (get_courses.length > 0 || get_total_courseCount.length > 0) {
+        const totalPage = await course_model.countDocuments(filterQuery)
+
+        //checking the data is getting or not if the condition satifies then it will sent a resolved response otherwise it will throw a rejected response
+        if (get_courses) {
             res.status(200)
-                .json({ message: "Courses filtered and fetched successfully", success: true, courses: get_courses })
+                .json({ message: "Courses filtered and fetched successfully", success: true, courses: get_courses , totalPage:totalPage})
         } else {
             res.status(404)
                 .json({ message: "Courses not found", success: false })
         }
-
-
-
     } catch (error) {
         res.status(500)
             .json({ message: "Something went wrong. Try again", success: false, error: error.message })
     }
 }
+
 
 const get_courses_length = async (req, res) => {
     try {

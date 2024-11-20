@@ -10,6 +10,7 @@ import refresh_token_model from "../models/refresh_token.js"
 import validator from "validator"
 import category_model from "../models/category.js"
 import instructor_model from "../models/instuctor.js"
+import course_model from "../models/course.js"
 
 
 //* <-------------- Admin Auth -------------------->
@@ -256,7 +257,7 @@ const get_admin_data = async (req, res) => {
 const edit_admin = async (req, res) => {
     const { name, email, mobile, dob, current_password, new_password, profile, _id } = req.body
     console.log(req.body);
-    
+
     try {
         let isChanged = false
         const get_admin = await student_model.findOne({ _id, is_admin: true })
@@ -277,7 +278,7 @@ const edit_admin = async (req, res) => {
                 get_admin.dob = dob
                 isChanged = true
             }
-            if (current_password !== "" && new_password!== "") {
+            if (current_password !== "" && new_password !== "") {
                 const is_password_same = await compare_password(current_password, get_admin?.password)
                 if (is_password_same || !get_admin?.googleId) {
                     if (new_password !== current_password || new_password !== "") {
@@ -327,7 +328,7 @@ const add_category = async (req, res) => {
 
         const { title, description } = req.body
         //Finding the category alreary exist or not
-        const is_category_exist = await category_model.findOne({ title : {$regex: new RegExp(`^${title}$`,'i')} })
+        const is_category_exist = await category_model.findOne({ title: { $regex: new RegExp(`^${title}$`, 'i') } })
         //Checking the category is not exist (presized finding)
         // const is_category_exist = categories.filter((category) => (category.title.toLowerCase().trim() === title.toLowerCase().trim()))
         //if category is not exist then go to further proceduers
@@ -513,7 +514,7 @@ const add_sub_category = async (req, res) => {
             // tif the sub category not exist then go for furthur process
             if (is_sub_category_exist.length === 0) {
                 // add the new sub category to the array by spread operator otherwise it will override the existing one
-                get_category.sub_category = [...sub_categories, { title, description, _id: sub_categories.length, category_id:get_category._id, status: true }]
+                get_category.sub_category = [...sub_categories, { title, description, _id: sub_categories.length, category_id: get_category._id, status: true }]
                 // The editing the sub category to the db
                 const saved = await get_category.save()
                 console.log(saved);
@@ -866,6 +867,142 @@ const unblock_instructor = async (req, res) => {
     }
 }
 
+//* <---------------------- Admin Course Management ------------------------------>
+
+const get_all_courses = async (req, res) => {
+    try {
+        const get_course = await course_model.find({ is_blocked: false }).sort({ createdAt: -1 }).populate("instructor_id")
+        // console.log(get_course);
+
+        if (get_course) {
+            res.status(200)
+                .json({ message: "All Courses fetched successfully", success: true, courses: get_course })
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong", success: false, error: error.message })
+    }
+}
+
+const get_course_search_sort_filter = async (req, res) => {
+    try {
+        console.log(req.query);
+        // Getting the queries from the url
+        const page = parseInt(req.query.page) || 0
+        const limit = parseInt(req.query.limit) || 5
+        const search = req.query.search || ""
+        const sort = req.query.sort || 1
+        const filter = req.query.filter || "all"
+
+        // Object that contained the conditions to filter out data from the db
+        const filterQuery = {
+            ...(search !== ""
+                ? { title: { $regex: search, $options: 'i' } }
+                : {}
+            ),
+            ...(filter === "blocked"
+                ? { is_blocked: true }
+                : {}
+            ),
+            ...(filter === "active"
+                ? { is_blocked: false }
+                : {}
+            ),
+
+        }
+
+        //function to sort the db based on the user selection
+        const getSortOrder = (sort) => {
+            switch (sort) {
+                case "popularity":
+                    return { ratings: -1 };
+                case "newest":
+                    return { createdAt: -1 };
+                case "oldest":
+                    return { createdAt: 1 };
+                case "PriceAsc":
+                    return { actual_price: 1 };
+                case "PriceDes":
+                    return { actual_price: -1 };
+                case "AlphaDes":
+                    return { title: -1 };
+                case "AlphaAsc":
+                    return { title: 1 };
+                default:
+                    return { createdAt: -1 };
+            }
+        }
+
+        //Getting the filtered, sorted , paginated data from the db 
+        const get_courses = await course_model.find(filterQuery).sort(getSortOrder(sort)).skip(page === 1 ? 0 : (page - 1) * limit).limit(limit).populate("instructor_id")
+        console.log(get_courses);
+        const totalPage = await course_model.countDocuments(filterQuery)
+
+        //checking the data is getting or not if the condition satifies then it will sent a resolved response otherwise it will throw a rejected response
+        if (get_courses) {
+            res.status(200)
+                .json({ message: "Courses filtered and fetched successfully", success: true, courses: get_courses, totalPage: totalPage })
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong. Try again", success: false, error: error.message })
+    }
+}
+
+const block_course = async (req, res) => {
+    try {
+        const { _id } = req.body
+        const get_course = await course_model.findOne({ _id })
+        if (get_course) {
+            get_course.is_blocked = true 
+            const blocked = await get_course.save()
+            if(blocked){
+                res.status(200)
+                .json({message:"Course Blocked successfully" , success:true })
+            }else{
+                res.status(400)
+                .json({ message: "Unexpected error occurs . Try again", success: false })
+            }
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong. Try again", success: false, error: error.message })
+    }
+}
+
+const unblock_course = async (req, res) => {
+    try {
+        const { _id } = req.body
+        const get_course = await course_model.findOne({ _id })
+        if (get_course) {
+            get_course.is_blocked = false 
+            const blocked = await get_course.save()
+            if(blocked){
+                res.status(200)
+                .json({message:"Course Unblocked successfully" , success:true })
+            }else{
+                res.status(400)
+                .json({ message: "Unexpected error occurs . Try again", success: false })
+            }
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong. Try again", success: false, error: error.message })
+    }
+}
+
 //exporting student controllers
 export {
     //* auth manangement
@@ -894,6 +1031,11 @@ export {
     //* instructor management
     get_all_instructors,
     block_instructor,
-    unblock_instructor
+    unblock_instructor,
 
+    //* Course Managment 
+    get_all_courses,
+    get_course_search_sort_filter,
+    block_course,
+    unblock_course
 }
