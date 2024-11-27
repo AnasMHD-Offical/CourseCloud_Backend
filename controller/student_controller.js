@@ -14,6 +14,7 @@ import category_model from "../models/category.js"
 import cart_model from "../models/cart.js"
 import mongoose from "mongoose"
 import wishlist_model from "../models/wishlist.js"
+import purchasedCourse_model from "../models/purchasedCourses.js"
 const ObjectId = mongoose.Types.ObjectId
 
 //Controller to handle student login 
@@ -353,19 +354,31 @@ const student_logout = async (req, res) => {
 //Controller for handle getting the courses 
 const get_courses = async (req, res) => {
     try {
+        const student_id = req.query.student_id
+        console.log("student id : ", student_id);
+
+        let course = null
         const get_course = await course_model.find({ is_blocked: false }).sort({ createdAt: -1 })
-        // console.log(get_course);
+        if (student_id) {
+            const purchased_courses = await purchasedCourse_model.findOne({ student_id: student_id }, { courses: true})
+            console.log(purchased_courses);
+            course = get_course.map((course) => ({
+                ...course,
+                is_purchased: purchased_courses?.courses.some((c) => c.course_id.toString() === course._id.toString())
+            }))
+            console.log("courses : ", course);
+        }
 
         if (get_course) {
             res.status(200)
-                .json({ message: "Courses fetched successfully", success: true, courses: get_course })
+                .json({ message: "Courses fetched successfully", success: true, courses: course ? course : get_course })
         } else {
             res.status(404)
                 .json({ message: "Courses not found", success: false })
         }
     } catch (error) {
         res.status(500)
-            .json({ message: "Something went wrong", success: false, error })
+            .json({ message: "Something went wrong", success: false, error: error.message })
     }
 }
 
@@ -378,6 +391,7 @@ const get_course = async (req, res) => {
         // const lessons = await course_model.findOne({ _id })
         // console.log(lessons);
         // console.log(get_course.category.title);
+
         if (get_course) {
             res.status(200)
                 .json({ message: "Course fetched successfully", success: true, course: get_course })
@@ -461,7 +475,7 @@ const add_to_cart = async (req, res) => {
 
         if (get_cart) {
             if (!is_course_exist) {
-                get_cart.cart_items = [...get_cart.cart_items, {course_id: course_id, price: price?.$numberDecimal}]
+                get_cart.cart_items = [...get_cart.cart_items, { course_id: course_id, price: price?.$numberDecimal }]
                 const saved = await get_cart.save()
                 if (saved) {
                     res.status(200)
@@ -721,7 +735,7 @@ const edit_profile = async (req, res) => {
         }
     } catch (error) {
         res.status(500)
-            .json({ message: "Something went Wrong", success: false, error })
+            .json({ message: "Something went Wrong", success: false, error: error.message })
     }
 }
 

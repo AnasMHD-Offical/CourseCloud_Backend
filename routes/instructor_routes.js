@@ -1,6 +1,6 @@
 //Importing Es modules
 import express from "express"
-import { instructor_login, instructor_register, send_otp, validate_otp, reset_password, get_instructor, edit_instructor, add_course, get_created_courses, get_course, edit_course, instructor_logout } from "../controller/instructor_controller.js"
+import { instructor_login, instructor_register, send_otp, validate_otp, reset_password, get_instructor, edit_instructor, add_course, get_created_courses, get_course, edit_course, instructor_logout, get_all_courses_by_instructor, get_enrolled_students } from "../controller/instructor_controller.js"
 import { get_category } from "../controller/category_controller.js"
 const instructor_route = express.Router()
 
@@ -21,7 +21,7 @@ instructor_route.post("/validate_otp", validate_otp)
 //Route for instructor reset password
 instructor_route.put("/reset_password", reset_password)
 
-instructor_route.post("/instructor_logout",instructor_logout)
+instructor_route.post("/instructor_logout", instructor_logout)
 
 //*<----------------------Instructor Profile Management Routes------------------------->
 
@@ -29,7 +29,7 @@ instructor_route.post("/instructor_logout",instructor_logout)
 instructor_route.get("/get_instructor/:id", get_instructor)
 
 //Route for edit instructor
-instructor_route.put("/edit_instructor", edit_instructor)
+instructor_route.patch("/edit_instructor", edit_instructor)
 
 //* <----------------------- Instructor create course ---------------------------------->
 
@@ -44,6 +44,11 @@ instructor_route.get("/get_course/:id", get_course)
 
 instructor_route.put("/edit_course", edit_course)
 
+//* <----------------------- Instructor Course Management -------------------------------->
+
+instructor_route.get("/get_all_courses_by_instructor", get_all_courses_by_instructor)
+
+instructor_route.get("/get_enrolled_students", get_enrolled_students)
 
 
 

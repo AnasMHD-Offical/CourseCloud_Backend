@@ -55,7 +55,7 @@ const course_schema = mongoose.Schema({
         type: [String]
     },
     rating: {
-        type: String
+        type: Number
     },
     is_blocked: {
         type: Boolean,

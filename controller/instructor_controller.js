@@ -12,6 +12,7 @@ import validator from "validator"
 import course_model from "../models/course.js"
 import lesson_model from "../models/lesson.js"
 import mongoose from "mongoose"
+import enrollment_model from "../models/enrollment.js"
 const ObjectId = mongoose.Types.ObjectId
 
 
@@ -648,6 +649,98 @@ const edit_course = async (req, res) => {
     }
 }
 
+const get_all_courses_by_instructor = async (req, res) => {
+    try {
+        console.log(req.query);
+        // Getting the queries from the url
+        const page = parseInt(req.query.page) || 0
+        const limit = parseInt(req.query.limit) || 5
+        const search = req.query.search || ""
+        const sort = req.query.sort || 1
+        const filter = req.query.filter || "all"
+        const instructor_id = req.query.instructor_id || ""
+
+        // Object that contained the conditions to filter out data from the db
+        const filterQuery = {
+            ...(instructor_id !== ""
+                ? { instructor_id: instructor_id }
+                : {}
+            ),
+            ...(search !== ""
+                ? { title: { $regex: search, $options: 'i' } }
+                : {}
+            ),
+            ...(filter === "blocked"
+                ? { is_blocked: true }
+                : {}
+            ),
+            ...(filter === "active"
+                ? { is_blocked: false }
+                : {}
+            ),
+
+        }
+
+        //function to sort the db based on the user selection
+        const getSortOrder = (sort) => {
+            switch (sort) {
+                case "popularity":
+                    return { ratings: -1 };
+                case "newest":
+                    return { createdAt: -1 };
+                case "oldest":
+                    return { createdAt: 1 };
+                case "PriceAsc":
+                    return { actual_price: 1 };
+                case "PriceDes":
+                    return { actual_price: -1 };
+                case "AlphaDes":
+                    return { title: -1 };
+                case "AlphaAsc":
+                    return { title: 1 };
+                default:
+                    return { createdAt: -1 };
+            }
+        }
+
+        //Getting the filtered, sorted , paginated data from the db 
+        const get_courses = await course_model.find(filterQuery).sort(getSortOrder(sort)).skip(page === 1 ? 0 : (page - 1) * limit).limit(limit).populate("instructor_id")
+        console.log(get_courses);
+        const totalPage = await course_model.countDocuments(filterQuery)
+
+        //checking the data is getting or not if the condition satifies then it will sent a resolved response otherwise it will throw a rejected response
+        if (get_courses) {
+            res.status(200)
+                .json({ message: "Courses filtered and fetched successfully", success: true, courses: get_courses, totalPage: totalPage })
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong. Try again", success: false, error: error.message })
+    }
+}
+
+const get_enrolled_students = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 0
+        const limit = parseInt(req.query.limit) || 5
+        const course_id = req.query.course_id
+        const get_enrolled_students = await enrollment_model.find({ course_id: course_id }, { student_id: true, date_of_purchase: true }).skip(page === 1 ? 0 : (page - 1) * limit).limit(limit).populate("student_id", { name: true })
+        const totalPage = await enrollment_model.countDocuments({ course_id: course_id })
+        if (get_enrolled_students) {
+            res.status(200)
+                .json({ message: "enrolled students data fetched successfully", success: true, enrolled_students: get_enrolled_students, totalPage: totalPage })
+        } else {
+            res.status(404)
+                .json({ message: "Courses not found", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong. Try again", success: false, error: error.message })
+    }
+}
 
 
 // const add_course = async (req, res) => {
@@ -753,5 +846,8 @@ export {
     get_created_courses,
     get_course,
     edit_course,
+    //Course Management
+    get_all_courses_by_instructor,
+    get_enrolled_students
 
 }

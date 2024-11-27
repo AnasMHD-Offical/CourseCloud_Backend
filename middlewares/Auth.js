@@ -39,12 +39,13 @@ export const student_auth = async (req, res, next) => {
     
     try {
         if (access_token) {
-            console.log("hello");
+            console.log("hello frm middleware");
             
             const verified = decode(access_token,process.env.JWT_STUDENT_ACCESS_TOKEN_SECRET)
             console.log(verified);
             
             if(verified){
+                req.user = verified?.data
                 next()
             }else{
                 res.status(403)

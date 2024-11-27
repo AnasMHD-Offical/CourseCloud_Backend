@@ -4,6 +4,9 @@ import { student_login, student_register, send_otp, validate_otp, refresh_token,
 import { course_search_sort_filter, get_category, get_courses_length } from "../controller/category_controller.js"
 import { student_auth } from "../middlewares/Auth.js"
 import { createEnrollment, get_purchased_courses } from "../controller/enrollment_controller.js"
+import { get_quizzes, store_results } from "../controller/quiz_controller.js"
+import { update_assignment_progress } from "../controller/assignment_controller.js"
+import { create_review, get_reviews } from "../controller/review_controller.js"
 const student_route = express.Router()
 
 //* <-------------------------- Student Auth Routes ------------------------------------->
@@ -80,10 +83,23 @@ student_route.post("/create_enrollment", student_auth, createEnrollment)
 // Route for get the purchased course 
 student_route.get("/get_purchased_courses/:id", student_auth, get_purchased_courses)
 
-student_route.get("/get_course_by_search_sort_filter",course_search_sort_filter)
+//Route for get the course by filter, sort and search.
+student_route.get("/get_course_by_search_sort_filter", course_search_sort_filter)
 
 student_route.get("/get_course_length", get_courses_length)
 
+//Route for create quiz using gemini AI
+student_route.get("/create_quizess", student_auth, get_quizzes)
+
+//Route for storing the quiz result in database.
+student_route.post("/store_results", student_auth, store_results)
+
+//Route for update the assignment in the assignment progress for instructor validation.
+student_route.put("/update_assignment_progress", student_auth, update_assignment_progress)
+
+student_route.post("/create_review", student_auth, create_review)
+
+student_route.get("/get_reviews/:id", student_auth, get_reviews)
 
 // Exporting student_route module
 export default student_route
