@@ -448,8 +448,8 @@ const add_course = async (req, res) => {
                 console.log(lesson_created);
                 if (lesson_created) {
                     const lessions = lesson_created.map((lesson) => (lesson._id))
-                    console.log(lessions);
-                    created_course.lessions = lessions
+                    console.log("lessons created  : ",lessions);
+                    created_course.lessons = lessions
                     const saved_lessons = await created_course.save()
                     console.log("Lesson :", saved_lessons);
 

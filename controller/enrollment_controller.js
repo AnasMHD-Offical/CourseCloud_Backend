@@ -18,7 +18,7 @@ const createEnrollment = async (req, res) => {
         const enrollments = await Promise.all(
             courses.map(async (course, index) => {
                 try {
-                    console.log("Creating course enrollement:", course);  // Log course data
+                    // console.log("Creating course enrollement:", course);  // Log course data
 
                     const new_enrollment = new enrollment_model({
                         student_id: student_id,
@@ -101,25 +101,25 @@ const get_purchased_courses = async (req, res) => {
     try {
         const { id } = req.params
         const get_purchased_course = await purchasedCourse_model.findOne({ student_id: id }).populate({ path: "courses", populate: { path: "course_id", model: "course" } })
-        console.log(get_purchased_course);
+        // console.log(get_purchased_course);
         const Courses_duration = await Promise.all(
             get_purchased_course?.courses.map(async (course, index) => {
                 try {
                     const get_course = await course_model.findOne({ _id: course?.course_id?._id }).populate("lessons")
                     if (get_course) {
-                        console.log(get_course?.lessons);
+                        // console.log(get_course?.lessons);
 
                         let totalDuration = 0;
                         for (const lesson of get_course?.lessons || []) {
                             try {
-                                console.log("lesson link : ", lesson?.video_tutorial_link);
+                                // console.log("lesson link : ", lesson?.video_tutorial_link);
 
                                 const videoDetails = await cloudinary.api.resource(lesson?.video_tutorial_link, {
                                     resource_type: "video",
                                     media_metadata: true,
                                     prefix: "CourseCloud_Tutorials"
                                 });
-                                console.log("Video details", videoDetails.duration / 60);
+                                // console.log("Video details", videoDetails.duration / 60);
 
                                 totalDuration += (videoDetails.duration / 60);
                             } catch (error) {
@@ -155,10 +155,27 @@ const get_purchased_courses = async (req, res) => {
     }
 }
 
+const get_course_data = async (req, res) => {
+    try {
+        const get_course_data = await course_model.findOne({ _id: req.params.id }, { title: true, description: true })
+        if (get_course_data) {
+            res.status(200)
+                .json({ message: "Course data fetched successfully", success: true, course: get_course_data })
+        } else {
+            res.status(404)
+                .json({ message: "Course Not found . Try again", success: false })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({ message: "Something went wrong. Try again", success: false, error: error.message })
+    }
+}
+
 
 export {
     createEnrollment,
-    get_purchased_courses
+    get_purchased_courses,
+    get_course_data
 }
 
 

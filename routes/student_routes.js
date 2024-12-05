@@ -3,11 +3,14 @@ import express from "express"
 import { student_login, student_register, send_otp, validate_otp, refresh_token, reset_password, student_logout, get_courses, get_course, get_courses_by_category, get_cart, add_to_cart, remove_from_cart, add_to_wishlist, get_wishlist, remove_from_wishlist, get_student_data, edit_profile } from "../controller/student_controller.js"
 import { course_search_sort_filter, get_category, get_courses_length } from "../controller/category_controller.js"
 import { student_auth } from "../middlewares/Auth.js"
-import { createEnrollment, get_purchased_courses } from "../controller/enrollment_controller.js"
+import { createEnrollment, get_course_data, get_purchased_courses } from "../controller/enrollment_controller.js"
 import { get_quizzes, store_results } from "../controller/quiz_controller.js"
 import { update_assignment_progress } from "../controller/assignment_controller.js"
 import { create_review, get_reviews } from "../controller/review_controller.js"
+import { create_lesson_progress, get_lesson_progress, get_video_progress, update_lesson_progress, update_video_progress } from "../controller/progress_controller.js"
+import { create_notes, delete_note, get_saved_notes } from "../controller/notes_controller.js"
 const student_route = express.Router()
+
 
 //* <-------------------------- Student Auth Routes ------------------------------------->
 //Route for student login 
@@ -88,18 +91,44 @@ student_route.get("/get_course_by_search_sort_filter", course_search_sort_filter
 
 student_route.get("/get_course_length", get_courses_length)
 
+student_route.get("/get_course_data/:id", get_course_data)
+
+//*<-------------------------- Ai generated quiz management -------------------------------->
 //Route for create quiz using gemini AI
 student_route.get("/create_quizess", student_auth, get_quizzes)
 
 //Route for storing the quiz result in database.
 student_route.post("/store_results", student_auth, store_results)
 
-//Route for update the assignment in the assignment progress for instructor validation.
-student_route.put("/update_assignment_progress", student_auth, update_assignment_progress)
+//* <------------------------ Reviews and reating Management ------------------------------->
 
 student_route.post("/create_review", student_auth, create_review)
 
 student_route.get("/get_reviews/:id", student_auth, get_reviews)
+
+//* <--------------------------- Course progress management --------------------------------->
+
+student_route.put("/update_video_progress", student_auth, update_video_progress)
+
+student_route.get("/get_video_progress", student_auth, get_video_progress)
+
+//Route for update the assignment in the assignment progress for instructor validation.
+student_route.put("/update_assignment_progress", student_auth, update_assignment_progress)
+
+// student_route.post("/create_lesson_progress", student_auth, create_lesson_progress)
+
+student_route.put("/update_lesson_progress", student_auth, update_lesson_progress)
+
+student_route.get("/get_lesson_progress", student_auth, get_lesson_progress)
+
+
+//* <-------------------------- Saved notes management -------------------------------------->
+
+student_route.post("/create_notes", student_auth, create_notes)
+
+student_route.get("/get_saved_notes", student_auth, get_saved_notes)
+
+student_route.delete("/delete_note/:id", student_auth, delete_note)
 
 // Exporting student_route module
 export default student_route

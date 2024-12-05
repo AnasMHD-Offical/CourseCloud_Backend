@@ -13,10 +13,24 @@ const assignment_progress_schema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "lesson",
     },
-    completed_assignment:{
-        type:String,
+    completed_assignment: {
+        type: String,
+    },
+    submitted_date: {
+        type: Date,
+        default: Date.now()
+    },
+    assignment_total_score: {
+        type: Number
+    },
+    assignment_given_score: {
+        type: Number
+    },
+    assignment_status: {
+        type: Boolean,
+        default: false
     }
-},{ timestamps: true })
+}, { timestamps: true })
 
 const assignment_progress_model = mongoose.model("assignment_progress", assignment_progress_schema)
 

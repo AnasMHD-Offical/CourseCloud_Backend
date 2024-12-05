@@ -19,7 +19,7 @@ const get_category = async (req, res) => {
 //Controller to handle course search, sort , filter opertions in course db
 const course_search_sort_filter = async (req, res) => {
     try {
-        console.log(req.query);
+        // console.log(req.query);
         // Getting the queries from the url
         const page = parseInt(req.query.page) || 1
         const limit = parseInt(req.query.limit) || Infinity
@@ -87,17 +87,17 @@ const course_search_sort_filter = async (req, res) => {
 
         //Getting the filtered, sorted , paginated data from the db 
         const get_courses = await course_model.find(filterQuery).sort(getSortOrder(sort)).skip(page === 1 ? 0 : (page - 1) * limit).limit(limit)
-        console.log(get_courses);
+        // console.log(get_courses);
         const totalPage = await course_model.countDocuments(filterQuery)
         let course = null
         if (student_id) {
             const purchased_courses = await purchasedCourse_model.findOne({ student_id: student_id }, { courses: true })
-            console.log(purchased_courses);
+            // console.log(purchased_courses);
             course = get_courses.map((course) => ({
                 ...course,
                 is_purchased: purchased_courses?.courses.some((c) => c.course_id.toString() === course._id.toString())
             }))
-            console.log("courses : ", course);
+            // console.log("courses : ", course);
         }
         //checking the data is getting or not if the condition satifies then it will sent a resolved response otherwise it will throw a rejected response
         if (get_courses) {

@@ -26,6 +26,7 @@
     "nodemailer": "^6.9.15",
     "otp-generator": "^4.0.1",
     "passport": "^0.7.0",
+    "socket.io": "^4.8.1",
     "url": "^0.11.4",
     "validator": "^13.12.0"
   }

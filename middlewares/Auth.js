@@ -35,14 +35,14 @@ export const student_auth = async (req, res, next) => {
     // const access_token = req.cookies.admin_access_token 
     const auth_headers = req.headers["authorization"]
     const access_token = auth_headers && auth_headers.startsWith("Bearer") ? auth_headers.split(" ")[1] : ""
-    console.log(access_token);
+    // console.log(access_token);
     
     try {
         if (access_token) {
-            console.log("hello frm middleware");
+            // console.log("hello frm middleware");
             
             const verified = decode(access_token,process.env.JWT_STUDENT_ACCESS_TOKEN_SECRET)
-            console.log(verified);
+            // console.log(verified);
             
             if(verified){
                 req.user = verified?.data

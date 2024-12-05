@@ -355,18 +355,18 @@ const student_logout = async (req, res) => {
 const get_courses = async (req, res) => {
     try {
         const student_id = req.query.student_id
-        console.log("student id : ", student_id);
+        // console.log("student id : ", student_id);
 
         let course = null
         const get_course = await course_model.find({ is_blocked: false }).sort({ createdAt: -1 })
         if (student_id) {
             const purchased_courses = await purchasedCourse_model.findOne({ student_id: student_id }, { courses: true})
-            console.log(purchased_courses);
+            // console.log(purchased_courses);
             course = get_course.map((course) => ({
                 ...course,
                 is_purchased: purchased_courses?.courses.some((c) => c.course_id.toString() === course._id.toString())
             }))
-            console.log("courses : ", course);
+            // console.log("courses : ", course);
         }
 
         if (get_course) {
@@ -448,7 +448,7 @@ const get_cart = async (req, res) => {
         console.log(_id);
 
         const get_cart = await cart_model.findOne({ student_id: _id }).populate({ path: "cart_items.course_id", populate: "instructor_id" })
-        console.log(get_cart);
+        // console.log(get_cart);
 
         if (get_cart) {
             res.status(200)
