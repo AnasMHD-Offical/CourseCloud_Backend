@@ -29,7 +29,7 @@ const lesson_progress_schema = mongoose.Schema({
     },
     lesson_completed: {
         type: Boolean,
-        default: false
+        default: true
     },
     lesson_progress: {
         type: Number

@@ -3,6 +3,9 @@ import express from "express"
 import { add_category, add_sub_category, admin_login, admin_logout, block_course, block_instructor, block_student, delete_category, delete_sub_category, edit_admin, edit_category, edit_sub_category, get_admin_data, get_all_categories, get_all_courses, get_all_instructors, get_all_students, get_course_search_sort_filter, listing_category, listing_sub_category, reset_password, send_otp, unblock_course, unblock_instructor, unblock_student, validate_otp } from "../controller/admin_controller.js"
 import { admin_auth } from "../middlewares/Auth.js"
 import { get_courses_length } from "../controller/category_controller.js"
+import { get_enrollment_analytics, get_platform_analytics_data, get_platform_revenueProfit_stats } from "../controller/dashboard_controller.js"
+import { block_reviews, get_reviews, unblock_reviews } from "../controller/review_controller.js"
+import { download_sales_report_excel, download_sales_report_pdf, get_sales_report } from "../controller/sales_controller.js"
 const admin_route = express.Router()
 
 
@@ -92,6 +95,29 @@ admin_route.put("/block_course", admin_auth, block_course)
 
 admin_route.put("/unblock_course", admin_auth, unblock_course)
 
+//* <------------------------- Admin Dashboard ------------------------------------------>
+
+admin_route.get("/get_platfrom_analytics", get_platform_analytics_data)
+
+admin_route.get("/get_platform_revenueProfit_analytics", get_platform_revenueProfit_stats)
+
+admin_route.get("/get_platform_enrollment_analytics", get_enrollment_analytics)
+
+//* <-------------------------- Review & Rating management ------------------------------>
+
+admin_route.get("/get_reviews/:id", admin_auth, get_reviews)
+
+admin_route.put("/block_review", admin_auth, block_reviews)
+
+admin_route.put("/unblock_review", admin_auth, unblock_reviews)
+
+//* <--------------------------- Sales Management ---------------------------------------->
+
+admin_route.get("/get_sales_report", admin_auth, get_sales_report)
+
+admin_route.get("/get_download_sales_report_pdf", admin_auth, download_sales_report_pdf)
+
+admin_route.get("/get_download_sales_report_excel", admin_auth, download_sales_report_excel)
 
 
 

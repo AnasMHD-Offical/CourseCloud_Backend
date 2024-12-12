@@ -3,6 +3,7 @@ import express from "express"
 import { instructor_login, instructor_register, send_otp, validate_otp, reset_password, get_instructor, edit_instructor, add_course, get_created_courses, get_course, edit_course, instructor_logout, get_all_courses_by_instructor, get_enrolled_students } from "../controller/instructor_controller.js"
 import { get_category } from "../controller/category_controller.js"
 import { get_instructor_dashboard_data, get_revenue_data, get_student_enrollment_data } from "../controller/dashboard_controller.js"
+import { get_reviews } from "../controller/review_controller.js"
 const instructor_route = express.Router()
 
 
@@ -56,6 +57,8 @@ instructor_route.get("/get_instructor_dashboard_data/:id", get_instructor_dashbo
 instructor_route.get("/get_student_enrollment_data/:id", get_student_enrollment_data)
 
 instructor_route.get("/get_revenue_data/:id", get_revenue_data)
+
+instructor_route.get("/get_reviews/:id", get_reviews)
 
 
 

@@ -17,6 +17,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "google-auth-library": "^9.14.2",
@@ -26,6 +27,7 @@
     "nodemailer": "^6.9.15",
     "otp-generator": "^4.0.1",
     "passport": "^0.7.0",
+    "pdfkit-table": "^0.1.99",
     "socket.io": "^4.8.1",
     "url": "^0.11.4",
     "validator": "^13.12.0"

@@ -448,7 +448,7 @@ const add_course = async (req, res) => {
                 console.log(lesson_created);
                 if (lesson_created) {
                     const lessions = lesson_created.map((lesson) => (lesson._id))
-                    console.log("lessons created  : ",lessions);
+                    console.log("lessons created  : ", lessions);
                     created_course.lessons = lessions
                     const saved_lessons = await created_course.save()
                     console.log("Lesson :", saved_lessons);
@@ -741,6 +741,8 @@ const get_enrolled_students = async (req, res) => {
             .json({ message: "Something went wrong. Try again", success: false, error: error.message })
     }
 }
+
+
 
 
 // const add_course = async (req, res) => {

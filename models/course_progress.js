@@ -27,6 +27,9 @@ const course_progress_schema = mongoose.Schema({
     lessons_completed: {
         type: Number
     },
+    total_lessons: {
+        type: Number
+    }
 }, { timestamps: true })
 
 

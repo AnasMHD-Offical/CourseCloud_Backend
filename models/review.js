@@ -14,9 +14,13 @@ const review_schema = mongoose.Schema({
     },
     feedback: {
         type: String
+    },
+    is_blocked: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true })
 
-const review_model = mongoose.model("review",review_schema)
+const review_model = mongoose.model("review", review_schema)
 
 export default review_model
