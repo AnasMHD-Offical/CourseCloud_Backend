@@ -114,7 +114,7 @@ const create_lesson_progress = async (req, res) => {
 const update_lesson_progress = async (req, res) => {
     try {
         const { tutorial_completed, assignment_completed, student_id, course_id, lesson_id, video_progress } = req.body
-        const get_lesson_progress = await lesson_progress_model.findOne({ lesson_id })
+        const get_lesson_progress = await lesson_progress_model.findOne({ student_id, lesson_id })
         if (get_lesson_progress) {
             tutorial_completed ? get_lesson_progress.video_tutorial_completed = tutorial_completed : null
             assignment_completed ? get_lesson_progress.assignment_completed = assignment_completed : null
