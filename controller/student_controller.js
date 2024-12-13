@@ -489,7 +489,7 @@ const add_to_cart = async (req, res) => {
                     .json({ message: "Course already added to the cart", success: false })
             }else{
                 res.status(403)
-                .json({ message: "Unauthorized Access. Please try to login and try again", success: false })
+                .json({ message: "Please try to login and Continue", success: false })
             }
         } else if (student_id) {
             const new_cart = new cart_model({
@@ -509,7 +509,7 @@ const add_to_cart = async (req, res) => {
             }
         } else {
             res.status(403)
-                .json({ message: "Unauthorized Access. Please try to login and try again", success: false })
+                .json({ message: "Please try to login and Continue", success: false })
         }
 
 
@@ -614,7 +614,7 @@ const add_to_wishlist = async (req, res) => {
             }
         } else {
             res.status(403)
-                .json({ message: "Unauthorized Access. Please try to login and try again", success: false })
+                .json({ message: "Please try to login and Continue", success: false })
         }
     } catch (error) {
         console.log(error);
