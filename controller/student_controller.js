@@ -484,9 +484,12 @@ const add_to_cart = async (req, res) => {
                     res.status(400)
                         .json({ message: "Unexpected error occurs. Try Again", success: false })
                 }
-            } else {
+            } else if (student_id) {
                 res.status(409)
                     .json({ message: "Course already added to the cart", success: false })
+            }else{
+                res.status(403)
+                .json({ message: "Unauthorized Access. Please try to login and try again", success: false })
             }
         } else if (student_id) {
             const new_cart = new cart_model({
