@@ -360,7 +360,7 @@ const get_courses = async (req, res) => {
         let course = null
         const get_course = await course_model.find({ is_blocked: false }).sort({ createdAt: -1 })
         if (student_id) {
-            const purchased_courses = await purchasedCourse_model.findOne({ student_id: student_id }, { courses: true})
+            const purchased_courses = await purchasedCourse_model.findOne({ student_id: student_id }, { courses: true })
             // console.log(purchased_courses);
             course = get_course.map((course) => ({
                 ...course,
@@ -488,7 +488,7 @@ const add_to_cart = async (req, res) => {
                 res.status(409)
                     .json({ message: "Course already added to the cart", success: false })
             }
-        } else {
+        } else if (student_id) {
             const new_cart = new cart_model({
                 student_id: student_id,
                 cart_items: {
@@ -504,6 +504,9 @@ const add_to_cart = async (req, res) => {
                 res.status(400)
                     .json({ message: "Unexpected error occurs. Try Again", success: false })
             }
+        } else {
+            res.status(403)
+                .json({ message: "Unauthorized Access. Please try to login and try again", success: false })
         }
 
 
@@ -593,7 +596,7 @@ const add_to_wishlist = async (req, res) => {
                 res.status(409)
                     .json({ message: "Course already added to the wishlist", success: false })
             }
-        } else {
+        } else if (student_id) {
             const new_wishlist = new wishlist_model({
                 student_id: student_id,
                 wishlist_items: course_id,
@@ -606,6 +609,9 @@ const add_to_wishlist = async (req, res) => {
                 res.status(400)
                     .json({ message: "Unexpected error occurs. Try Again", success: false })
             }
+        } else {
+            res.status(403)
+                .json({ message: "Unauthorized Access. Please try to login and try again", success: false })
         }
     } catch (error) {
         console.log(error);
